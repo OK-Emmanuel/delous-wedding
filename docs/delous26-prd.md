@@ -80,7 +80,7 @@ Design system
 | Warm ivory | `#FAF6EF` |
 | Rich black | `#171313` |
 | Primary heading | Cormorant Garamond |
-| Secondary heading |  |
+| Secondary heading |Fleur De Leah  |
 | Body | Inter |
 
 These are proposed brand tokens and can be adjusted during design.

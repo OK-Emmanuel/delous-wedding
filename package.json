@@ -1,0 +1,46 @@
+{
+  "name": "delous-wedding",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.44.2",
+    "framer-motion": "^12.23.0",
+    "html5-qrcode": "^2.3.8",
+    "jose": "^6.0.11",
+    "next": "^15.5.4",
+    "papaparse": "^5.5.3",
+    "pg": "^8.16.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.60.0",
+    "recharts": "^2.15.3",
+    "resend": "^4.6.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^24",
+    "@types/papaparse": "^5.3.16",
+    "@types/pg": "^8.15.4",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^17.0.0",
+    "drizzle-kit": "^0.31.4",
+    "tailwindcss": "^4.1.11",
+    "tsx": "^4.20.3",
+    "typescript": "^5"
+  }
+}

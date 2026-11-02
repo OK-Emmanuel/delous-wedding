@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* DELOUS '26 brand tokens (PRD §3.1) */
+  --color-burgundy: #541323;
+  --color-wine: #260811;
+  --color-gold: #c6a15b;
+  --color-champagne: #f2e7d4;
+  --color-ivory: #faf6ef;
+  --color-rich-black: #171313;
+
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-ivory);
+  color: var(--color-rich-black);
+  font-family: var(--font-body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Ambient CSS effects (PRD §3.4: shimmer, floating ornaments, gold)   */
+/* ------------------------------------------------------------------ */
+
+.gold-text {
+  background: linear-gradient(100deg, #8a6a2f, #c6a15b 35%, #f3dfae 50%, #c6a15b 65%, #8a6a2f);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.float-slow {
+  animation: floaty 7s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--color-gold);
+}
+.ornament-divider::before,
+.ornament-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-gold), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-text,
+  .float-slow {
+    animation: none;
+  }
+}
+
+/* Printable invitation card */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
