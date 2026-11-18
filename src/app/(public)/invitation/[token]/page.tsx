@@ -49,7 +49,7 @@ export default async function InvitationPage({
             <p className="font-display text-2xl italic text-gold">Ayọ̀ àti ìbùkún!</p>
             <p className="mt-1 text-sm text-champagne/80">
               Your registration is complete. A copy of this invitation has been
-              sent to your email — save this page, you will present the QR code
+              sent to your email — screenshot this page, you will present the QR code
               at the entrance.
             </p>
           </div>

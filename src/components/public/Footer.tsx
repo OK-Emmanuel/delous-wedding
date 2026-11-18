@@ -9,57 +9,85 @@ export default function Footer({
   rsvp2: string;
 }) {
   return (
-    <footer className="bg-wine text-champagne">
-      <div className="mx-auto max-w-6xl px-5 py-14">
-        <div className="grid gap-10 md:grid-cols-3">
-          <div>
-            <div className="font-display text-2xl font-semibold tracking-[0.2em]">
+    <footer className="bg-[#140308] text-champagne border-t border-gold/20">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <div className="grid gap-10 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <div className="font-display text-3xl font-semibold tracking-[0.2em]">
               DELOUS <span className="gold-text">&rsquo;26</span>
             </div>
-            <p className="mt-3 text-sm text-champagne/70">
+            <p className="mt-4 text-sm text-champagne/70 leading-relaxed max-w-md">
               {EVENT.couple}
               <br />
-              {EVENT.dateLabel}
+              {EVENT.dateLabel} &bull; Lagos, Nigeria
               <br />
-              Lagos, Nigeria
+              <span className="italic text-gold mt-1 block">
+                &ldquo;A royal celebration of love, culture and legacy.&rdquo;
+              </span>
             </p>
           </div>
+
           <div>
-            <h3 className="font-display text-lg text-gold">RSVP / Enquiries</h3>
-            <ul className="mt-3 space-y-2 text-sm text-champagne/80">
-              <li>{rsvp1}</li>
-              <li>{rsvp2}</li>
+            <h3 className="font-display text-lg text-gold uppercase tracking-wider">
+              RSVP &amp; Enquiries
+            </h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-champagne/80">
+              <li className="flex items-center gap-2">
+                <span>📞</span>
+                <span>{rsvp1}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span>📞</span>
+                <span>{rsvp2}</span>
+              </li>
             </ul>
           </div>
+
           <div>
-            <h3 className="font-display text-lg text-gold">Quick Links</h3>
-            <ul className="mt-3 space-y-2 text-sm">
+            <h3 className="font-display text-lg text-gold uppercase tracking-wider">
+              Celebration Links
+            </h3>
+            <ul className="mt-4 space-y-2 text-sm">
               <li>
-                <Link href="/register" className="text-champagne/80 hover:text-gold">
+                <Link href="/register" className="text-champagne/80 hover:text-gold transition">
                   Register to attend
                 </Link>
               </li>
               <li>
-                <Link href="/invitation" className="text-champagne/80 hover:text-gold">
+                <Link href="/#programme" className="text-champagne/80 hover:text-gold transition">
+                  Wedding Programme
+                </Link>
+              </li>
+              <li>
+                <Link href="/#colour-theme" className="text-champagne/80 hover:text-gold transition">
+                  Colour of the Day
+                </Link>
+              </li>
+              <li>
+                <Link href="/#gifting" className="text-champagne/80 hover:text-gold transition">
+                  Gifting &amp; Donations
+                </Link>
+              </li>
+              <li>
+                <Link href="/invitation" className="text-champagne/80 hover:text-gold transition">
                   Retrieve my invitation
                 </Link>
               </li>
               <li>
-                <Link href="/faqs" className="text-champagne/80 hover:text-gold">
-                  Frequently asked questions
+                <Link href="/faqs" className="text-champagne/80 hover:text-gold transition">
+                  Frequently Asked Questions
                 </Link>
               </li>
             </ul>
           </div>
         </div>
-        <div className="ornament-divider mt-12 text-xs tracking-[0.3em]">
-          ÌFẸ́ NI GBOGBO RẸ̀ — LOVE IS EVERYTHING
+
+        <div className="ornament-divider mt-14 text-xs tracking-[0.35em] text-gold/70">
+          ÌFẸ́ NI GBOGBO RẸ̀ &bull; LOVE IS EVERYTHING
         </div>
+
         <p className="mt-6 text-center text-xs text-champagne/50">
-          © 2026 DELOUS &rsquo;26 · One person, one ticket ·{" "}
-          <Link href="/admin" className="hover:text-gold">
-            Admin
-          </Link>
+          &copy; 2026 DELOUS &rsquo;26. Celebrating Dessy &amp; G Sam. All rights reserved.
         </p>
       </div>
     </footer>

@@ -1,0 +1,207 @@
+export interface GalleryItem {
+  id: string | number;
+  imageUrl: string;
+  caption: string | null;
+  altText: string | null;
+  category?: "court" | "corporate" | "casual" | "admin" | "all";
+  featured?: boolean;
+}
+
+export const PUBLIC_GALLERY_IMAGES: GalleryItem[] = [
+  // Court Registry Session
+  {
+    id: "public-court-1",
+    imageUrl: "/court/_DSC0716.JPG",
+    caption: "The Registry & Legal Union — Official Sign of Forever",
+    altText: "Olasubulumi & Dare at the Court Registry",
+    category: "court",
+    featured: true,
+  },
+  {
+    id: "public-court-2",
+    imageUrl: "/court/_DSC0649.JPG.jpeg",
+    caption: "Sealed with a Promise — Joy in the Presence of Witnesses",
+    altText: "The couple celebrating their court registry union",
+    category: "court",
+  },
+  {
+    id: "public-court-3",
+    imageUrl: "/court/_DSC0729.JPG.jpeg",
+    caption: "Radiant Smiles & Lifelong Commitment",
+    altText: "Court registry joy and laughter",
+    category: "court",
+  },
+
+  // Corporate & Editorial Session
+  {
+    id: "public-corp-1",
+    imageUrl: "/corporate/_NZ55155-Edit.jpg",
+    caption: "Royal Majesty — Poise, Devotion & Cultural Elegance",
+    altText: "High editorial portrait of Olasubulumi & Dare",
+    category: "corporate",
+    featured: true,
+  },
+  {
+    id: "public-corp-2",
+    imageUrl: "/corporate/_NZ55161-Edit.jpg",
+    caption: "Two Souls in Harmony — The Promise of Tomorrow",
+    altText: "Olasubulumi and Dare in evening elegance",
+    category: "corporate",
+    featured: true,
+  },
+  {
+    id: "public-corp-3",
+    imageUrl: "/corporate/_NZ55084-Edit.jpg",
+    caption: "Timeless Grace & Shared Affection",
+    altText: "Corporate pre-wedding photoshoot portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-4",
+    imageUrl: "/corporate/_NZ55107-Edit.jpg",
+    caption: "A Look that Speaks a Thousand Promises",
+    altText: "Intimate couple gaze",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-5",
+    imageUrl: "/corporate/_NZ55121-Edit.jpg",
+    caption: "Strength, Beauty & Sacred Fellowship",
+    altText: "Portrait in dark burgundy setting",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-6",
+    imageUrl: "/corporate/_NZ55164-Edit.jpg",
+    caption: "Modern Romance with Traditional Roots",
+    altText: "Couple posing together in evening wear",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-7",
+    imageUrl: "/corporate/_NZ55169-Edit.jpg",
+    caption: "Hand in Hand Across Every Season",
+    altText: "The couple holding hands lovingly",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-8",
+    imageUrl: "/corporate/_NZ55180-Edit.jpg",
+    caption: "Pure Happiness & Shared Laughter",
+    altText: "Couple laughing with genuine joy",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-9",
+    imageUrl: "/corporate/_NZ55191-Edit.jpg",
+    caption: "Gentle Touch, Unshakeable Devotion",
+    altText: "Tender moment between the couple",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-10",
+    imageUrl: "/corporate/_NZ55196-Edit.jpg",
+    caption: "The Journey of a Lifetime Begins",
+    altText: "Elegant side portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-11",
+    imageUrl: "/corporate/_NZ55207-Edit.jpg",
+    caption: "Every Step Guided by Faith and Love",
+    altText: "Pre-wedding studio portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-12",
+    imageUrl: "/corporate/_NZ55232-Edit.jpg",
+    caption: "A Love That Inspires Us Every Day",
+    altText: "Celebratory formal portrait",
+    category: "corporate",
+  },
+
+  // Casual & Intimate Session
+  {
+    id: "public-cas-1",
+    imageUrl: "/casual/IMG_9657.CR2.jpg",
+    caption: "Our Natural Haven — Love in Its Purest Warmth",
+    altText: "Casual intimate embrace",
+    category: "casual",
+    featured: true,
+  },
+  {
+    id: "public-cas-2",
+    imageUrl: "/casual/IMG_9659.CR2.jpg",
+    caption: "Unfiltered Connection & Sweet Whispers",
+    altText: "Couple whispering and smiling together",
+    category: "casual",
+  },
+  {
+    id: "public-cas-3",
+    imageUrl: "/casual/IMG_9619.CR2.jpg",
+    caption: "From Secondary School Classmates to Forever",
+    altText: "Relaxed couple outdoor moment",
+    category: "casual",
+  },
+  {
+    id: "public-cas-4",
+    imageUrl: "/casual/IMG_9643.CR2.jpg",
+    caption: "Where Friendship Blossomed into Eternity",
+    altText: "Casual lifestyle pre-wedding photo",
+    category: "casual",
+  },
+  {
+    id: "public-cas-5",
+    imageUrl: "/casual/IMG_9675.CR2.jpg",
+    caption: "Simply Us — Real, Joyful & Deeply Blessed",
+    altText: "Joyful natural portrait",
+    category: "casual",
+  },
+];
+
+/**
+ * Combines project public-folder images with database admin-uploaded images,
+ * ensuring no duplicates (by normalized imageUrl).
+ */
+export function getMergedGallery(
+  adminImages: Array<{
+    id: number;
+    imageUrl: string;
+    caption: string | null;
+    altText: string | null;
+  }> = []
+): GalleryItem[] {
+  const seenUrls = new Set<string>();
+  const merged: GalleryItem[] = [];
+
+  // Helper to normalize image URL for comparison
+  const normalize = (url: string) =>
+    url.trim().toLowerCase().replace(/^\/+/, "/");
+
+  // First, add admin-uploaded images (giving them prime prominence)
+  for (const item of adminImages) {
+    const key = normalize(item.imageUrl);
+    if (!seenUrls.has(key)) {
+      seenUrls.add(key);
+      merged.push({
+        id: `admin-${item.id}`,
+        imageUrl: item.imageUrl,
+        caption: item.caption,
+        altText: item.altText,
+        category: "admin",
+        featured: true,
+      });
+    }
+  }
+
+  // Then add all public folder images
+  for (const item of PUBLIC_GALLERY_IMAGES) {
+    const key = normalize(item.imageUrl);
+    if (!seenUrls.has(key)) {
+      seenUrls.add(key);
+      merged.push(item);
+    }
+  }
+
+  return merged;
+}
