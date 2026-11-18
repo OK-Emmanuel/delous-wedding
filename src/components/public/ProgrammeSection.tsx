@@ -39,15 +39,25 @@ export default function ProgrammeSection({
   // Parallax translation range for the background image
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
-  // Google Calendar Link generator for the ceremony
-  const googleCalLink =
-    "https://calendar.google.com/calendar/render?action=TEMPLATE&text=DELOUS+'26+-+Olasubulumi+%26+Dare+Wedding&dates=20261128T090000Z/20261128T180000Z&details=The+royal+wedding+celebration+of+Olasubulumi+Adesola+%26+Dare+Samuel.+One+day,+two+unforgettable+celebrations.&location=Araromi+Baptist+Church,+42+Shokunbi+Street,+Mushin,+Lagos";
+  // Google Calendar Links for both events
+  const ceremonyCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    "DELOUS '26 - Holy Matrimony"
+  )}&dates=20261128T090000Z/20261128T120000Z&details=${encodeURIComponent(
+    "Holy Matrimony service of Olasubulumi Adesola & Dare Samuel."
+  )}&location=${encodeURIComponent(`${ceremonyVenue}, ${ceremonyAddress}`)}`;
 
-  const ceremonyMapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  const receptionCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    "DELOUS '26 - The Royal Reception"
+  )}&dates=20261128T120000Z/20261128T170000Z&details=${encodeURIComponent(
+    "Royal Reception celebration of Olasubulumi Adesola & Dare Samuel."
+  )}&location=${encodeURIComponent(`${receptionVenue}, ${receptionAddress}`)}`;
+
+  // Reliable Google Maps Direct Navigation Links
+  const ceremonyMapLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
     `${ceremonyVenue}, ${ceremonyAddress}`
   )}`;
 
-  const receptionMapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  const receptionMapLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
     `${receptionVenue}, ${receptionAddress}`
   )}`;
 
@@ -55,7 +65,7 @@ export default function ProgrammeSection({
     <section
       ref={sectionRef}
       id="programme"
-      className="relative overflow-hidden bg-burgundy px-5 py-28 sm:py-36 text-champagne min-h-screen flex items-center justify-center"
+      className="relative overflow-hidden bg-burgundy px-5 py-24 sm:py-32 text-champagne min-h-screen flex items-center justify-center"
     >
       {/* Parallax Background Image Container */}
       <motion.div
@@ -79,29 +89,29 @@ export default function ProgrammeSection({
       {/* Main Section Content */}
       <div className="relative z-10 mx-auto max-w-5xl w-full">
         <Reveal>
-          <div className="mb-14 text-center">
+          <div className="mb-12 text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-wine/80 px-5 py-1.5 text-[11px] uppercase tracking-[0.35em] text-gold backdrop-blur-md shadow-lg">
               <HugeiconsIcon icon={SparklesIcon} size={14} />
               <span>INTERACTIVE WEDDING ITINERARY</span>
               <HugeiconsIcon icon={SparklesIcon} size={14} />
             </span>
 
-            <h2 className="mt-5 font-display text-4xl sm:text-6xl md:text-7xl font-medium text-champagne drop-shadow-md">
+            <h2 className="mt-4 font-display text-4xl sm:text-5xl md:text-6xl font-medium text-champagne drop-shadow-md">
               One Day, Two Celebrations
             </h2>
 
-            <div className="ornament-divider mx-auto mt-5 max-w-xs text-sm text-gold">✦</div>
+            <div className="ornament-divider mx-auto mt-4 max-w-xs text-sm text-gold">✦</div>
 
-            <p className="mx-auto mt-4 max-w-xl text-sm sm:text-base text-champagne/80 leading-relaxed font-light">
-              Scratch or swipe across each card below to unveil the sacred ceremony and royal reception details.
+            <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base text-champagne/80 leading-relaxed font-light">
+              Scratch or swipe across each card to reveal the sacred ceremony and royal reception details.
             </p>
 
             {/* Quick Reveal All toggle */}
-            <div className="mt-8 flex items-center justify-center">
+            <div className="mt-6 flex items-center justify-center">
               <button
                 onClick={() => setRevealAll((prev) => !prev)}
                 type="button"
-                className="group inline-flex items-center gap-2 rounded-full border border-gold/50 bg-wine/90 px-7 py-3 text-xs font-semibold tracking-wider text-gold shadow-xl backdrop-blur hover:bg-gold hover:text-wine transition-all duration-300 hover:scale-105"
+                className="group inline-flex items-center gap-2 rounded-full border border-gold/50 bg-wine/90 px-6 py-2.5 text-xs font-semibold tracking-wider text-gold shadow-xl backdrop-blur hover:bg-gold hover:text-wine transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <HugeiconsIcon icon={SparklesIcon} size={14} className="text-gold group-hover:text-wine" />
                 <span>{revealAll ? "↺ Reset Scratch Cards" : "Reveal All Programme Details"}</span>
@@ -110,43 +120,39 @@ export default function ProgrammeSection({
           </div>
         </Reveal>
 
-        {/* Scratch Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-          <Reveal delay={0.1}>
+        {/* Scratch Cards Grid - Identical Height & Structure */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-7 py-4 sm:gap-8 items-stretch">
+          <Reveal delay={0.1} className="h-full flex flex-col">
             <ScratchCard
               title="Holy Matrimony"
               subtitle="The Sacred Union"
-              icon={<HugeiconsIcon icon={ChurchIcon} size={24} />}
+              icon={<HugeiconsIcon icon={ChurchIcon} size={22} />}
               time={ceremonyTime}
               venue={ceremonyVenue}
               address={ceremonyAddress}
               highlights={[
-                "Solemnisation of Holy Matrimony",
-                "Exchange of Sacred Vows & Rings",
-                "Choir Ministration & Nuptial Hymns",
-                "Parental Blessings & Dedication",
+                "Solemnisation & Sacred Vows",
+                "Choir Hymns & Nuptial Blessing",
               ]}
-              calendarLink={googleCalLink}
+              calendarLink={ceremonyCalLink}
               mapLink={ceremonyMapLink}
               isAllRevealed={revealAll}
             />
           </Reveal>
 
-          <Reveal delay={0.25}>
+          <Reveal delay={0.2} className="h-full flex flex-col">
             <ScratchCard
-              title="The Royal Reception"
+              title="Royal Reception"
               subtitle="Celebration of Love"
-              icon={<HugeiconsIcon icon={PartyPopperIcon} size={24} />}
+              icon={<HugeiconsIcon icon={PartyPopperIcon} size={22} />}
               time="IMMEDIATELY AFTER"
               venue={receptionVenue}
               address={receptionAddress}
               highlights={[
-                "Grand Royal Couple Entrance",
-                "Cutting of the Wedding Cake",
-                "Sumptuous Feast & Banqueting",
-                "Traditional Celebratory Dances",
+                "Grand Couple Royal Entrance",
+                "Celebratory Banquet & Dances",
               ]}
-              calendarLink={googleCalLink}
+              calendarLink={receptionCalLink}
               mapLink={receptionMapLink}
               isAllRevealed={revealAll}
             />
@@ -154,7 +160,7 @@ export default function ProgrammeSection({
         </div>
 
         {/* Note below */}
-        <p className="mt-12 text-center text-xs tracking-wider text-champagne/60 font-light">
+        <p className="mt-10 text-center text-xs tracking-wider text-champagne/60 font-light">
           We kindly request all guests to be seated at the church sanctuary 15 minutes prior to commencement.
         </p>
       </div>

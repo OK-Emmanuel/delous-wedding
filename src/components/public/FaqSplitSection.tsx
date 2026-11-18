@@ -61,7 +61,7 @@ export default function FaqSplitSection({ items }: { items: FaqItem[] }) {
       {/* RIGHT SIDE: Wedding Photograph (50% on desktop) */}
       <div className="relative w-full lg:w-1/2 h-[380px] sm:h-[460px] lg:h-full overflow-hidden bg-wine order-first lg:order-last">
         <Image
-          src="/court/_DSC0716.JPG"
+          src="/casual/IMG_9659.CR2.jpg"
           alt="Couple smiling with genuine joy at court registry"
           fill
           priority={false}

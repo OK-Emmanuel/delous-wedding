@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Location01Icon,
@@ -228,19 +227,19 @@ export default function ScratchCard({
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col min-h-[440px] rounded-3xl border border-gold/40 bg-gradient-to-br from-wine/90 via-[#20060e]/90 to-[#140308]/90 p-7 sm:p-9 text-champagne shadow-2xl shadow-burgundy/50 overflow-hidden backdrop-blur-md"
+      className="relative flex flex-col h-full rounded-3xl border border-gold/40 bg-gradient-to-br from-wine/90 via-[#20060e]/95 to-[#140308]/95 p-6 sm:p-8 text-champagne shadow-2xl shadow-burgundy/50 overflow-hidden backdrop-blur-md"
     >
-      {/* Background card content */}
-      <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
-        <div>
+      {/* Background card content: clean, minimalistic & structured */}
+      <div className="relative z-10 flex flex-col justify-between h-full space-y-6 flex-1">
+        <div className="space-y-5">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gold/20 pb-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gold/40 bg-gold/15 text-gold shadow-inner">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-gold/40 bg-gold/15 text-gold shadow-inner">
                 {icon}
               </span>
               <div>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-gold">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-gold font-semibold">
                   {subtitle}
                 </span>
                 <h3 className="font-display text-2xl sm:text-3xl font-medium text-champagne">
@@ -248,49 +247,55 @@ export default function ScratchCard({
                 </h3>
               </div>
             </div>
-            <span className="rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">
+            <span className="rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-xs font-semibold text-gold tracking-wide">
               {time}
             </span>
           </div>
 
           {/* Venue & Location Details */}
-          <div className="mt-6 space-y-2 rounded-2xl border border-gold/25 bg-wine/60 p-5 backdrop-blur-sm">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-gold/80">
-              Venue &amp; Location
-            </p>
-            <h4 className="font-display text-xl sm:text-2xl font-semibold text-champagne">
+          <div className="rounded-2xl border border-gold/25 bg-wine/60 p-4 sm:p-5 backdrop-blur-sm space-y-1.5">
+            <div className="flex items-center gap-1.5 text-gold/80">
+              <HugeiconsIcon icon={Location01Icon} size={14} className="text-gold" />
+              <span className="text-[10px] uppercase tracking-[0.25em] font-semibold">
+                Venue Location
+              </span>
+            </div>
+            <h4 className="font-display text-lg sm:text-xl font-semibold text-champagne">
               {venue}
             </h4>
-            <p className="text-sm text-champagne/75 leading-relaxed">
+            <p className="text-xs sm:text-sm text-champagne/75 leading-relaxed">
               {address}
             </p>
           </div>
 
-          {/* Event Highlights */}
-          <div className="mt-5">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-gold/80 mb-3">
+          {/* Event Highlights - Minimalist & Balanced */}
+          <div className="space-y-2">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-gold/80 font-semibold block">
               Event Highlights
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-champagne/80">
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-champagne/85">
               {highlights.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <span className="text-gold">✦</span>
-                  <span>{item}</span>
-                </li>
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 rounded-xl border border-gold/15 bg-white/5 px-3 py-2"
+                >
+                  <span className="text-gold text-[10px]">✦</span>
+                  <span className="font-light">{item}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="pt-4 border-t border-gold/20 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        {/* Action Buttons - Distinct, Clickable & Never Blocked */}
+        <div className="relative z-30 pt-4 border-t border-gold/20 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {mapLink && (
               <a
                 href={mapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium text-gold transition hover:bg-gold hover:text-wine"
+                className="inline-flex items-center gap-1.5 rounded-full border border-gold/50 bg-gold/15 px-4 py-2 text-xs font-medium text-gold transition-all duration-200 hover:bg-gold hover:text-wine active:scale-95 shadow-sm"
               >
                 <HugeiconsIcon icon={Location01Icon} size={15} />
                 <span>Get Directions</span>
@@ -301,7 +306,7 @@ export default function ScratchCard({
                 href={calendarLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-champagne/30 px-4 py-2 text-xs font-medium text-champagne/80 transition hover:border-gold hover:text-gold"
+                className="inline-flex items-center gap-1.5 rounded-full border border-champagne/30 bg-wine/50 px-4 py-2 text-xs font-medium text-champagne/90 transition-all duration-200 hover:border-gold hover:text-gold active:scale-95 shadow-sm"
               >
                 <HugeiconsIcon icon={Calendar03Icon} size={15} />
                 <span>Add to Calendar</span>
@@ -313,7 +318,7 @@ export default function ScratchCard({
             <button
               onClick={handleReset}
               type="button"
-              className="text-[11px] uppercase tracking-wider text-champagne/50 hover:text-gold transition"
+              className="text-[11px] uppercase tracking-wider text-champagne/50 hover:text-gold transition active:scale-95"
             >
               Scratch Again ↺
             </button>
@@ -322,14 +327,10 @@ export default function ScratchCard({
       </div>
 
       {/* Interactive Canvas Scratch Layer */}
-      <motion.div
-        initial={false}
-        animate={{
-          opacity: isRevealed ? 0 : 1,
-          pointerEvents: isRevealed ? "none" : "auto",
-        }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="absolute inset-0 z-20"
+      <div
+        className={`absolute inset-0 z-20 transition-opacity duration-500 ${
+          isRevealed ? "opacity-0 pointer-events-none hidden" : "opacity-100 pointer-events-auto"
+        }`}
       >
         <canvas
           ref={canvasRef}
@@ -341,26 +342,28 @@ export default function ScratchCard({
           aria-label="Scratch card surface"
         />
 
-        {/* Quick reveal button */}
-        <div className="absolute bottom-5 inset-x-0 flex flex-col items-center gap-2 pointer-events-auto">
-          {scratchProgress > 0 && scratchProgress < 35 && (
-            <div className="h-1.5 w-32 rounded-full bg-wine/80 overflow-hidden border border-gold/40">
-              <div
-                className="h-full bg-gold transition-all duration-200"
-                style={{ width: `${(scratchProgress / 35) * 100}%` }}
-              />
-            </div>
-          )}
-          <button
-            onClick={handleManualReveal}
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-full border border-gold/60 bg-wine/90 px-5 py-2 text-xs tracking-wider text-gold shadow-lg backdrop-blur hover:bg-gold hover:text-wine transition"
-          >
-            <HugeiconsIcon icon={SparklesIcon} size={13} />
-            <span>Click to Reveal Details</span>
-          </button>
-        </div>
-      </motion.div>
+        {/* Quick reveal button (Only active when NOT revealed) */}
+        {!isRevealed && (
+          <div className="absolute bottom-5 inset-x-0 flex flex-col items-center gap-2 pointer-events-auto">
+            {scratchProgress > 0 && scratchProgress < 35 && (
+              <div className="h-1.5 w-32 rounded-full bg-wine/80 overflow-hidden border border-gold/40">
+                <div
+                  className="h-full bg-gold transition-all duration-200"
+                  style={{ width: `${(scratchProgress / 35) * 100}%` }}
+                />
+              </div>
+            )}
+            <button
+              onClick={handleManualReveal}
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-full border border-gold/60 bg-wine/90 px-5 py-2 text-xs tracking-wider text-gold shadow-lg backdrop-blur hover:bg-gold hover:text-wine transition active:scale-95"
+            >
+              <HugeiconsIcon icon={SparklesIcon} size={13} />
+              <span>Click to Reveal Details</span>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
