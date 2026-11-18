@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { VolumeMute01Icon, VolumeHighIcon } from "@hugeicons/core-free-icons";
 
 const AUDIO_SRC = "/audio/delous.mp3"; // supply the licensed track here
 const PREF_KEY = "delous-music-pref";
@@ -64,6 +66,7 @@ export default function MusicPlayer() {
         src={AUDIO_SRC}
         loop
         preload="none"
+        autoPlay
         onError={() => setAvailable(false)}
       />
       {expanded && (
@@ -71,9 +74,13 @@ export default function MusicPlayer() {
           <button
             aria-label={muted ? "Unmute" : "Mute"}
             onClick={() => setMuted((m) => !m)}
-            className="text-champagne/90 hover:text-gold"
+            className="flex items-center text-champagne/90 hover:text-gold transition"
           >
-            {muted ? "🔇" : "🔊"}
+            {muted ? (
+              <HugeiconsIcon icon={VolumeMute01Icon} size={18} />
+            ) : (
+              <HugeiconsIcon icon={VolumeHighIcon} size={18} />
+            )}
           </button>
           <input
             type="range"

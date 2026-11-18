@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { db } from "@/db";
 import { auditLogs, emailOutbox, guests, invitationGroups } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/permissions";
@@ -88,12 +90,14 @@ export default async function GuestDetailPage({
                 <dt className="text-xs text-slate-400">Check-in</dt>
                 <dd className="mt-1">
                   {guest.checkIn ? (
-                    <span className="text-emerald-700">
-                      ✓{" "}
-                      {guest.checkIn.checkedInAt.toLocaleString("en-GB", {
-                        timeZone: "Africa/Lagos",
-                      })}
-                      {guest.checkIn.officer && ` by ${guest.checkIn.officer.name}`}
+                    <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={15} />
+                      <span>
+                        {guest.checkIn.checkedInAt.toLocaleString("en-GB", {
+                          timeZone: "Africa/Lagos",
+                        })}
+                        {guest.checkIn.officer && ` by ${guest.checkIn.officer.name}`}
+                      </span>
                     </span>
                   ) : (
                     <span className="text-slate-500">Not checked in</span>

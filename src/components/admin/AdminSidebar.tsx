@@ -3,8 +3,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Analytics01Icon,
+  UserGroupIcon,
+  FolderLibraryIcon,
+  FileEditIcon,
+  Ticket01Icon,
+  CheckmarkCircle01Icon,
+  Image01Icon,
+  HelpCircleIcon,
+  Mail01Icon,
+  ChartIncreaseIcon,
+  Shield01Icon,
+  Settings01Icon,
+} from "@hugeicons/core-free-icons";
 
 export type NavItem = { href: string; label: string; icon: string };
+
+const ICON_MAP: Record<string, typeof Analytics01Icon> = {
+  overview: Analytics01Icon,
+  guests: UserGroupIcon,
+  groups: FolderLibraryIcon,
+  registrations: FileEditIcon,
+  tickets: Ticket01Icon,
+  checkin: CheckmarkCircle01Icon,
+  gallery: Image01Icon,
+  faqs: HelpCircleIcon,
+  emails: Mail01Icon,
+  reports: ChartIncreaseIcon,
+  staff: Shield01Icon,
+  settings: Settings01Icon,
+};
 
 export default function AdminSidebar({
   items,
@@ -34,12 +64,18 @@ export default function AdminSidebar({
             onClick={() => setOpen(false)}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
               active
-                ? "bg-burgundy text-white"
+                ? "bg-burgundy text-white font-medium shadow-sm"
                 : "text-slate-300 hover:bg-white/10 hover:text-white"
             }`}
           >
-            <span aria-hidden>{item.icon}</span>
-            {item.label}
+            <span aria-hidden className="flex items-center text-slate-400 group-hover:text-gold">
+              <HugeiconsIcon
+                icon={ICON_MAP[item.icon] ?? Analytics01Icon}
+                size={18}
+                className={active ? "text-gold" : "text-slate-400"}
+              />
+            </span>
+            <span>{item.label}</span>
           </Link>
         );
       })}

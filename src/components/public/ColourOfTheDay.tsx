@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CrownIcon } from "@hugeicons/core-free-icons";
 import Reveal from "./Reveal";
 
 interface ColourOfTheDayProps {
@@ -130,7 +132,9 @@ export default function ColourOfTheDay({ customDressCode }: ColourOfTheDayProps)
                   </div>
 
                   <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-burgundy/30 bg-champagne/40 px-8 py-6 text-center">
-                    <span className="text-3xl">👑</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-burgundy/10 text-burgundy">
+                      <HugeiconsIcon icon={CrownIcon} size={28} />
+                    </span>
                     <span className="mt-2 font-display text-lg font-semibold text-burgundy">
                       Royal Dress Code
                     </span>

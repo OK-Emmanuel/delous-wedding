@@ -7,15 +7,15 @@ import { getSettings } from "@/lib/settings";
 import Intro from "@/components/public/Intro";
 import Hero from "@/components/public/Hero";
 import Reveal from "@/components/public/Reveal";
-import FaqAccordion from "@/components/public/FaqAccordion";
 import GalleryGrid from "@/components/public/GalleryGrid";
 import ProgrammeSection from "@/components/public/ProgrammeSection";
 import ColourOfTheDay from "@/components/public/ColourOfTheDay";
 import GiftingSection from "@/components/public/GiftingSection";
+import FaqSplitSection from "@/components/public/FaqSplitSection";
 import { getMergedGallery } from "@/lib/gallery-sources";
 import { ADMISSION_NOTICE } from "@/lib/constants";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 function SectionHeading({
   kicker,
@@ -156,7 +156,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 4. Programme Section - Scratch-to-Reveal Experience (No Colour of Day) */}
+      {/* 4. Programme Section - Parallax Background & Scratch-to-Reveal */}
       <ProgrammeSection
         ceremonyTime={settings.ceremony_time}
         ceremonyVenue={settings.ceremony_venue}
@@ -168,7 +168,7 @@ export default async function HomePage() {
       {/* 5. Colour of the Day - Standalone Editorial Visual Feature */}
       <ColourOfTheDay customDressCode={settings.dress_code} />
 
-      {/* 6. Gifting & Donations Section */}
+      {/* 6. Gifting & Donations Section - Full-Viewport Split Screen */}
       <GiftingSection />
 
       {/* 7. Registration Invitation Section */}
@@ -180,7 +180,7 @@ export default async function HomePage() {
             </div>
             <p className="font-display text-3xl italic text-gold">Ẹ káàbọ̀!</p>
             <h2 className="mt-3 font-display text-4xl sm:text-5xl md:text-6xl font-medium text-burgundy">
-              Come celebrate with us 
+              Will you celebrate with us?
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-rich-black/75">
               Registration is open to everyone. Each registration generates your
@@ -234,27 +234,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 9. FAQs Section */}
-      <section id="faqs" className="bg-ivory px-5 py-28 sm:py-36">
-        <Reveal>
-          <SectionHeading
-            kicker="GOOD TO KNOW"
-            title="Questions &amp; Answers"
-            subtitle="Important information to help you plan and enjoy our special day."
-          />
-        </Reveal>
-        <Reveal delay={0.1}>
-          <FaqAccordion items={publishedFaqs} />
-          <div className="mt-10 text-center">
-            <Link
-              href="/faqs"
-              className="text-xs uppercase tracking-[0.25em] text-burgundy underline-offset-8 hover:underline hover:text-gold transition font-semibold"
-            >
-              VIEW ALL FREQUENTLY ASKED QUESTIONS →
-            </Link>
-          </div>
-        </Reveal>
-      </section>
+      {/* 9. FAQs Section - Full-Viewport Split Screen (Swapped Layout) */}
+      <FaqSplitSection items={publishedFaqs} />
     </>
   );
 }

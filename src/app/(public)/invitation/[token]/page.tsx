@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { eq } from "drizzle-orm";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { db } from "@/db";
 import { tickets } from "@/db/schema";
 import { hashToken, qrPayload } from "@/lib/qr/tokens";
@@ -93,8 +95,9 @@ export default async function InvitationPage({
             )}
 
             {ticket.guest.checkIn && (
-              <p className="mt-4 inline-block rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-medium text-emerald-700">
-                ✓ Checked in at the venue
+              <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-medium text-emerald-700">
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={15} />
+                <span>Checked in at the venue</span>
               </p>
             )}
 

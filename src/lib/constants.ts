@@ -35,10 +35,10 @@ export const DEFAULT_SETTINGS: Record<SettingKey, string> = {
   reception_address: "Challenge, Mushin, Lagos State",
   dress_code: "White & Ofi",
   rsvp_contact_1: "Daniel: 09036902177",
-  rsvp_contact_2: "Peluola: 09020602232",
+  rsvp_contact_2: "Lekan: 09156231727",
   hero_tagline: "A royal celebration of love, culture and legacy.",
   our_story:
-    "Every beautiful love story has a beginning, and ours began in JSS1, when we first met as classmates in secondary school. What started as a simple friendship blossomed into something truly special in SS1, laying the foundation for a love that would stand the test of time. \n Years later, in 2022, while I was in my 100 level at the university, I took a leap of faith and asked her to be mine. It was a beautiful moment made even more special by the fact that we were studying at the same university. \n From childhood classmates to university sweethearts, our journey has been nothing short of amazing. Through every season, we have grown together, loved deeply, and witnessed God's unwavering faithfulness. \n Now, you are joining us to celebrate not just how far we have come, but the beautiful forever that awaits us. What began as friendship has blossomed into a lifetime of love, and we couldn't be more grateful for the gift of finding each other.\n - G Sam ❤️",
+    "Every beautiful love story has a beginning, and ours began in JSS1, when we first met as classmates in secondary school. What started as a simple friendship blossomed into something truly special in SS1, laying the foundation for a love that would stand the test of time. \n Years later, in 2022, while I was in my 100 level at the university, I took a leap of faith and asked her to be mine. It was a beautiful moment made even more special by the fact that we were studying at the same university. \n From childhood classmates to university sweethearts, our journey has been nothing short of amazing. Through every season, we have grown together, loved deeply, and witnessed God's unwavering faithfulness. \n Now, you are joining us to celebrate not just how far we have come, but the beautiful forever that awaits us. What began as friendship has blossomed into a lifetime of love, and we couldn't be more grateful for the gift of finding each other.\n - G Sam",
   registration_open: "true",
 };
 

@@ -5,18 +5,18 @@ import AdminSidebar, { type NavItem } from "@/components/admin/AdminSidebar";
 import { logoutAction } from "@/app/(auth)/admin/login/actions";
 
 const NAV: Array<NavItem & { permission: Permission }> = [
-  { href: "/admin", label: "Overview", icon: "📊", permission: "view_dashboard" },
-  { href: "/admin/guests", label: "Guests", icon: "👥", permission: "manage_guests" },
-  { href: "/admin/groups", label: "Invitation Groups", icon: "🗂️", permission: "manage_groups" },
-  { href: "/admin/registrations", label: "Registrations", icon: "📝", permission: "manage_guests" },
-  { href: "/admin/tickets", label: "Digital Tickets", icon: "🎫", permission: "manage_guests" },
-  { href: "/admin/check-in", label: "Check-in", icon: "✅", permission: "check_in" },
-  { href: "/admin/gallery", label: "Gallery", icon: "🖼️", permission: "manage_gallery" },
-  { href: "/admin/faqs", label: "FAQs", icon: "❓", permission: "manage_faqs" },
-  { href: "/admin/emails", label: "Emails", icon: "✉️", permission: "manage_emails" },
-  { href: "/admin/reports", label: "Reports", icon: "📈", permission: "export_records" },
-  { href: "/admin/staff", label: "Staff & Permissions", icon: "🛡️", permission: "manage_staff" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙️", permission: "change_settings" },
+  { href: "/admin", label: "Overview", icon: "overview", permission: "view_dashboard" },
+  { href: "/admin/guests", label: "Guests", icon: "guests", permission: "manage_guests" },
+  { href: "/admin/groups", label: "Invitation Groups", icon: "groups", permission: "manage_groups" },
+  { href: "/admin/registrations", label: "Registrations", icon: "registrations", permission: "manage_guests" },
+  { href: "/admin/tickets", label: "Digital Tickets", icon: "tickets", permission: "manage_guests" },
+  { href: "/admin/check-in", label: "Check-in", icon: "checkin", permission: "check_in" },
+  { href: "/admin/gallery", label: "Gallery", icon: "gallery", permission: "manage_gallery" },
+  { href: "/admin/faqs", label: "FAQs", icon: "faqs", permission: "manage_faqs" },
+  { href: "/admin/emails", label: "Emails", icon: "emails", permission: "manage_emails" },
+  { href: "/admin/reports", label: "Reports", icon: "reports", permission: "export_records" },
+  { href: "/admin/staff", label: "Staff & Permissions", icon: "staff", permission: "manage_staff" },
+  { href: "/admin/settings", label: "Settings", icon: "settings", permission: "change_settings" },
 ];
 
 export default async function AdminLayout({

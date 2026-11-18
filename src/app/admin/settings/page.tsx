@@ -56,7 +56,8 @@ export default async function SettingsPage() {
       action: "settings.update",
       entityType: "settings",
     });
-    revalidatePath("/");
+    revalidatePath("/", "page");
+    revalidatePath("/", "layout");
     revalidatePath("/admin/settings");
   }
 

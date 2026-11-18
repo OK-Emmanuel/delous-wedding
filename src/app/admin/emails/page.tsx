@@ -55,7 +55,7 @@ export default async function EmailsPage({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(stats.total / PAGE_SIZE));
-  const resendConfigured = !!process.env.RESEND_API_KEY;
+  const sendgridConfigured = !!process.env.SENDGRID_API_KEY;
 
   async function retryAll() {
     "use server";
@@ -78,10 +78,10 @@ export default async function EmailsPage({
         }
       />
 
-      {!resendConfigured && (
+      {!sendgridConfigured && (
         <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <strong>Resend is not configured.</strong> Emails are queued but not
-          delivered. Set <code>RESEND_API_KEY</code> and <code>RESEND_FROM</code>{" "}
+          <strong>SendGrid is not configured.</strong> Emails are queued but not
+          delivered. Set <code>SENDGRID_API_KEY</code> and <code>SENDGRID_FROM</code>{" "}
           in the environment, then use “Retry Pending &amp; Failed”.
         </p>
       )}

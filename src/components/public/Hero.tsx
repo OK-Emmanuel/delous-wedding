@@ -23,17 +23,17 @@ const HERO_SLIDES = [
     caption: "The Sacred Union of Olasubulumi & Dare",
   },
   {
-    image: "/corporate/_NZ55155-Edit.jpg",
+    image: "/corporate/_NZ55107-Edit.jpg",
     title: "Cultural Royalty & Poise",
     caption: "A Heritage of Grace and Divine Favor",
   },
   {
-    image: "/court/_DSC0716.JPG",
+    image: "/corporate/_NZ55232-Edit.jpg",
     title: "Forever Sealed",
     caption: "Joy Unspeakable & Boundless Love",
   },
   {
-    image: "/corporate/_NZ55161-Edit.jpg",
+    image: "/corporate/_NZ55191-Edit.jpg",
     title: "Two Souls in Harmony",
     caption: "A Lifetime of Friendship Becoming One",
   },

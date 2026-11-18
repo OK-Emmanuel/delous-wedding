@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { desc, eq, sql } from "drizzle-orm";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { db } from "@/db";
 import { checkIns, guests, tickets } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/permissions";
@@ -104,13 +106,16 @@ export default async function TicketsPage({
                   </td>
                   <td className="px-4 py-3 text-xs">
                     {t.checkedInAt ? (
-                      <span className="text-emerald-700">
-                        ✓ Checked in{" "}
-                        {t.checkedInAt.toLocaleTimeString("en-GB", {
-                          timeZone: "Africa/Lagos",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                        <span>
+                          Checked in{" "}
+                          {t.checkedInAt.toLocaleTimeString("en-GB", {
+                            timeZone: "Africa/Lagos",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
                       </span>
                     ) : (
                       <span className="text-slate-400">Unused</span>

@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Location01Icon,
+  Calendar03Icon,
+  SparklesIcon,
+} from "@hugeicons/core-free-icons";
 
 interface ScratchCardProps {
   title: string;
-  icon: string;
+  icon: ReactNode;
   subtitle: string;
   time: string;
   venue: string;
@@ -119,7 +125,7 @@ export default function ScratchCard({
 
     ctx.fillStyle = "#c6a15b";
     ctx.font = "11px sans-serif";
-    ctx.fillText("✨ Scratch with finger or mouse ✨", width / 2, height / 2 + 62);
+    ctx.fillText("✦ Scratch with finger or mouse ✦", width / 2, height / 2 + 62);
   }, [title]);
 
   useEffect(() => {
@@ -151,7 +157,7 @@ export default function ScratchCard({
     ctx.arc(x, y, 32 * dpr, 0, Math.PI * 2);
     ctx.fill();
 
-    // Check cleared percentage every 10 scratches
+    // Check cleared percentage periodically
     if (Math.random() < 0.25) {
       checkClearedPercentage();
     }
@@ -166,7 +172,6 @@ export default function ScratchCard({
 
     try {
       const { width, height } = canvas;
-      // Sample a scaled down grid for high performance
       const sampleStep = 18;
       const imageData = ctx.getImageData(0, 0, width, height);
       const data = imageData.data;
@@ -175,8 +180,8 @@ export default function ScratchCard({
 
       for (let y = 0; y < height; y += sampleStep) {
         for (let x = 0; x < width; x += sampleStep) {
-          const index = (y * width + x) * 4 + 3;
-          if (data[index] < 128) {
+          const idx = (y * width + x) * 4 + 3;
+          if (data[idx] < 128) {
             transparentPixels++;
           }
           totalSampled++;
@@ -186,12 +191,11 @@ export default function ScratchCard({
       const percent = Math.round((transparentPixels / totalSampled) * 100);
       setScratchProgress(percent);
 
-      // Auto-reveal once scratched over 35%
       if (percent >= 35) {
         setIsRevealed(true);
       }
     } catch {
-      // Ignore security/canvas errors if any
+      // Ignore canvas errors
     }
   };
 
@@ -224,15 +228,15 @@ export default function ScratchCard({
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col min-h-[440px] rounded-3xl border border-gold/40 bg-gradient-to-br from-wine via-[#20060e] to-[#140308] p-7 sm:p-9 text-champagne shadow-2xl shadow-burgundy/40 overflow-hidden"
+      className="relative flex flex-col min-h-[440px] rounded-3xl border border-gold/40 bg-gradient-to-br from-wine/90 via-[#20060e]/90 to-[#140308]/90 p-7 sm:p-9 text-champagne shadow-2xl shadow-burgundy/50 overflow-hidden backdrop-blur-md"
     >
-      {/* Background card content (always rendered underneath, revealed when scratched) */}
+      {/* Background card content */}
       <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
         <div>
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gold/20 pb-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gold/40 bg-gold/10 text-2xl shadow-inner">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gold/40 bg-gold/15 text-gold shadow-inner">
                 {icon}
               </span>
               <div>
@@ -250,7 +254,7 @@ export default function ScratchCard({
           </div>
 
           {/* Venue & Location Details */}
-          <div className="mt-6 space-y-2 rounded-2xl border border-gold/25 bg-wine/50 p-5 backdrop-blur-sm">
+          <div className="mt-6 space-y-2 rounded-2xl border border-gold/25 bg-wine/60 p-5 backdrop-blur-sm">
             <p className="text-[11px] uppercase tracking-[0.25em] text-gold/80">
               Venue &amp; Location
             </p>
@@ -286,9 +290,9 @@ export default function ScratchCard({
                 href={mapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-xs font-medium text-gold transition hover:bg-gold hover:text-wine"
+                className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium text-gold transition hover:bg-gold hover:text-wine"
               >
-                <span>📍</span>
+                <HugeiconsIcon icon={Location01Icon} size={15} />
                 <span>Get Directions</span>
               </a>
             )}
@@ -299,7 +303,7 @@ export default function ScratchCard({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full border border-champagne/30 px-4 py-2 text-xs font-medium text-champagne/80 transition hover:border-gold hover:text-gold"
               >
-                <span>📅</span>
+                <HugeiconsIcon icon={Calendar03Icon} size={15} />
                 <span>Add to Calendar</span>
               </a>
             )}
@@ -337,7 +341,7 @@ export default function ScratchCard({
           aria-label="Scratch card surface"
         />
 
-        {/* Quick reveal button for mobile & accessible users */}
+        {/* Quick reveal button */}
         <div className="absolute bottom-5 inset-x-0 flex flex-col items-center gap-2 pointer-events-auto">
           {scratchProgress > 0 && scratchProgress < 35 && (
             <div className="h-1.5 w-32 rounded-full bg-wine/80 overflow-hidden border border-gold/40">
@@ -350,9 +354,10 @@ export default function ScratchCard({
           <button
             onClick={handleManualReveal}
             type="button"
-            className="rounded-full border border-gold/60 bg-wine/90 px-5 py-2 text-xs tracking-wider text-gold shadow-lg backdrop-blur hover:bg-gold hover:text-wine transition"
+            className="inline-flex items-center gap-1.5 rounded-full border border-gold/60 bg-wine/90 px-5 py-2 text-xs tracking-wider text-gold shadow-lg backdrop-blur hover:bg-gold hover:text-wine transition"
           >
-            ✦ Click to Reveal Details
+            <HugeiconsIcon icon={SparklesIcon} size={13} />
+            <span>Click to Reveal Details</span>
           </button>
         </div>
       </motion.div>

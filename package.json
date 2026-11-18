@@ -13,10 +13,14 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@hugeicons/core-free-icons": "^4.4.0",
+    "@hugeicons/react": "^1.1.10",
+    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.44.2",
     "framer-motion": "^12.23.0",
     "html5-qrcode": "^2.3.8",
+    "hugeicons-react": "^0.4.0",
     "jose": "^6.0.11",
     "next": "^15.5.4",
     "papaparse": "^5.5.3",
@@ -26,7 +30,6 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.60.0",
     "recharts": "^2.15.3",
-    "resend": "^4.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

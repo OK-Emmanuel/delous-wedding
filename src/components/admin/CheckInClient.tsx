@@ -1,7 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Html5Qrcode } from "html5-qrcode";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Camera01Icon,
+  Search01Icon,
+  Clock01Icon,
+  CheckmarkCircle01Icon,
+  Alert02Icon,
+  CancelCircleIcon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
 type Stats = { total: number; registered: number; checkedIn: number };
 type ScanGuest = {
@@ -210,7 +220,7 @@ export default function CheckInClient({
       });
       const json = await res.json();
       if (json.status === "admitted") {
-        toast("success", `${row.fullName} checked in ✓`);
+        toast("success", `${row.fullName} checked in successfully`);
       } else {
         // rollback optimistic state
         setResults((rs) =>
@@ -310,7 +320,7 @@ export default function CheckInClient({
     }
   }
 
-  const tabBtn = (key: typeof tab, label: string) => (
+  const tabBtn = (key: typeof tab, label: ReactNode) => (
     <button
       onClick={() => setTab(key)}
       className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
@@ -343,9 +353,9 @@ export default function CheckInClient({
 
       {/* Tabs + on-spot */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {tabBtn("scan", "📷 Scan QR")}
-        {tabBtn("search", "🔍 Manual Search")}
-        {tabBtn("recent", `🕓 Recent (${recent.length})`)}
+        {tabBtn("scan", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Camera01Icon} size={16} /><span>Scan QR</span></span>)}
+        {tabBtn("search", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Search01Icon} size={16} /><span>Manual Search</span></span>)}
+        {tabBtn("recent", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Clock01Icon} size={16} /><span>Recent ({recent.length})</span></span>)}
         <button
           onClick={() => setModalOpen(true)}
           className="ml-auto rounded-lg border border-gold bg-gold/10 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-gold/30"
@@ -440,12 +450,14 @@ export default function CheckInClient({
                       )}
                     </p>
                     {r.status === "revoked" ? (
-                      <p className="mt-1 text-xs font-medium text-red-600">
-                        ⛔ Revoked — do not admit
+                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600">
+                        <HugeiconsIcon icon={CancelCircleIcon} size={14} />
+                        <span>Revoked — do not admit</span>
                       </p>
                     ) : r.checkedInAt ? (
-                      <p className="mt-1 text-xs font-medium text-emerald-600">
-                        ✓ Checked in at {lagosTime(r.checkedInAt)}
+                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                        <span>Checked in at {lagosTime(r.checkedInAt)}</span>
                       </p>
                     ) : (
                       <p className="mt-1 text-xs text-slate-400">Awaiting check-in</p>
@@ -619,20 +631,22 @@ function ScanResultCard({
 }) {
   const config =
     result.status === "admitted"
-      ? { bg: "bg-emerald-50 border-emerald-200", icon: "✅", title: "Admitted — welcome!" }
+      ? { bg: "bg-emerald-50 border-emerald-200", icon: CheckmarkCircle01Icon, iconColor: "text-emerald-600", title: "Admitted — welcome!" }
       : result.status === "already_checked_in"
-        ? { bg: "bg-amber-50 border-amber-200", icon: "⚠️", title: "Already checked in" }
+        ? { bg: "bg-amber-50 border-amber-200", icon: Alert02Icon, iconColor: "text-amber-600", title: "Already checked in" }
         : result.status === "revoked"
-          ? { bg: "bg-red-50 border-red-200", icon: "⛔", title: "Ticket revoked — do not admit" }
+          ? { bg: "bg-red-50 border-red-200", icon: CancelCircleIcon, iconColor: "text-red-600", title: "Ticket revoked — do not admit" }
           : result.status === "invalid"
-            ? { bg: "bg-red-50 border-red-200", icon: "❌", title: "Invalid ticket" }
-            : { bg: "bg-red-50 border-red-200", icon: "📡", title: "Scan error" };
+            ? { bg: "bg-red-50 border-red-200", icon: Cancel01Icon, iconColor: "text-red-600", title: "Invalid ticket" }
+            : { bg: "bg-red-50 border-red-200", icon: Alert02Icon, iconColor: "text-red-600", title: "Scan error" };
 
   const guest = "guest" in result ? result.guest : null;
 
   return (
     <div className={`rounded-xl border p-6 text-center ${config.bg}`}>
-      <p className="text-5xl">{config.icon}</p>
+      <div className={`flex justify-center ${config.iconColor}`}>
+        <HugeiconsIcon icon={config.icon} size={48} />
+      </div>
       <h3 className="mt-3 text-xl font-semibold text-slate-900">{config.title}</h3>
       {guest && (
         <div className="mt-3">

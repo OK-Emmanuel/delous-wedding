@@ -1,5 +1,6 @@
 import { EVENT } from "@/lib/constants";
 import Link from "next/link";
+import RsvpContactModal from "./RsvpContactModal";
 
 export default function Footer({
   rsvp1,
@@ -31,16 +32,13 @@ export default function Footer({
             <h3 className="font-display text-lg text-gold uppercase tracking-wider">
               RSVP &amp; Enquiries
             </h3>
-            <ul className="mt-4 space-y-2.5 text-sm text-champagne/80">
-              <li className="flex items-center gap-2">
-                <span>📞</span>
-                <span>{rsvp1}</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span>📞</span>
-                <span>{rsvp2}</span>
-              </li>
-            </ul>
+            <p className="mt-2 text-xs text-champagne/60">
+              Click a contact to call directly or chat on WhatsApp:
+            </p>
+            <div className="mt-3 space-y-2">
+              <RsvpContactModal contactString={rsvp1} />
+              <RsvpContactModal contactString={rsvp2} />
+            </div>
           </div>
 
           <div>
@@ -87,7 +85,7 @@ export default function Footer({
         </div>
 
         <p className="mt-6 text-center text-xs text-champagne/50">
-          &copy; 2026 DELOUS &rsquo;26. Celebrating Dessy &amp; G Sam. All rights reserved.
+          &copy; 2026 DELOUS &rsquo;26. Celebrating {EVENT.couple}. All rights reserved.
         </p>
       </div>
     </footer>

@@ -32,7 +32,7 @@ export async function enqueueEmail(input: EnqueueInput): Promise<number | null> 
   return rows[0]?.id ?? null;
 }
 
-/** Attempt delivery of one queued email via Resend. Never throws. */
+/** Attempt delivery of one queued email via SendGrid. Never throws. */
 export async function attemptDelivery(outboxId: number): Promise<boolean> {
   const [row] = await db
     .select()
@@ -40,43 +40,45 @@ export async function attemptDelivery(outboxId: number): Promise<boolean> {
     .where(eq(emailOutbox.id, outboxId));
   if (!row || row.status === "sent" || row.status === "delivered") return true;
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
     // No provider configured (e.g. local development) — leave queued.
     console.log(
-      `[email outbox] no RESEND_API_KEY — "${row.subject}" to ${row.toEmail} stays pending`,
+      `[email outbox] no SENDGRID_API_KEY — "${row.subject}" to ${row.toEmail} stays pending`,
     );
     return false;
   }
 
   try {
-    const { Resend } = await import("resend");
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM ?? "DELOUS '26 <onboarding@resend.dev>",
+    const sgMail = (await import("@sendgrid/mail")).default;
+    sgMail.setApiKey(apiKey);
+    const [response] = await sgMail.send({
       to: row.toEmail,
+      from: process.env.SENDGRID_FROM ?? "DELOUS '26 <invites@delous26.com>",
       subject: row.subject,
       html: row.html,
     });
-    if (error) throw new Error(error.message);
+    const messageId = (response.headers["x-message-id"] as string | undefined) ?? null;
     await db
       .update(emailOutbox)
       .set({
         status: "sent",
-        providerId: data?.id ?? null,
+        providerId: messageId,
         sentAt: new Date(),
         attempts: sql`${emailOutbox.attempts} + 1`,
         lastError: null,
       })
       .where(eq(emailOutbox.id, outboxId));
     return true;
-  } catch (err) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error(`[email outbox] SendGrid delivery failed for ${row.toEmail}:`, errorMessage);
     await db
       .update(emailOutbox)
       .set({
         status: "failed",
         attempts: sql`${emailOutbox.attempts} + 1`,
-        lastError: err instanceof Error ? err.message : String(err),
+        lastError: errorMessage,
       })
       .where(eq(emailOutbox.id, outboxId));
     return false;
