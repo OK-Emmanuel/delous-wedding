@@ -119,6 +119,34 @@ export const PUBLIC_GALLERY_IMAGES: GalleryItem[] = [
     altText: "Celebratory formal portrait",
     category: "corporate",
   },
+  {
+    id: "public-corp-13",
+    imageUrl: "/corporate/0cc325bd-334e-4ce7-9b6b-3cf96135c89d.jpg",
+    caption: "A Love That Inspires Us Every Day",
+    altText: "Celebratory formal portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-14",
+    imageUrl: "/corporate/2c81d48e-72fd-4ed1-a1ee-48e16f3ad18d.jpg",
+    caption: "A Love That Inspires Us Every Day",
+    altText: "Celebratory formal portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-15",
+    imageUrl: "/corporate/abc.jpg",
+    caption: "A Love That Inspires Us Every Day",
+    altText: "Celebratory formal portrait",
+    category: "corporate",
+  },
+  {
+    id: "public-corp-16",
+    imageUrl: "/corporate/b535cc54-ca22-4ac8-991c-efcf602433d5.jpg",
+    caption: "A Love That Inspires Us Every Day",
+    altText: "Celebratory formal portrait",
+    category: "corporate",
+  },
 
   // Casual & Intimate Session
   {
