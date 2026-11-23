@@ -45,6 +45,13 @@ export const PUBLIC_GALLERY_IMAGES: GalleryItem[] = [
     altText: "Celebrating the official court union",
     category: "court",
   },
+  {
+    id: "public-court-6",
+    imageUrl: "/court/IMG_0701.JPG.jpeg",
+    caption: "A New Chapter Begins — Legally One",
+    altText: "Celebrating the official court union",
+    category: "court",
+  },
 
   // Corporate & Editorial Session
   {
