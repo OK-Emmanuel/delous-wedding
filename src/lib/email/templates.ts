@@ -25,7 +25,7 @@ function shell(title: string, body: string): string {
       </div>
       <div style="background:${styles.wine};color:${styles.champagne};text-align:center;padding:16px;border-radius:0 0 12px 12px;font-size:12px;">
         Ìfẹ́ ni gbogbo rẹ̀ — Love is everything.<br/>
-        ${EVENT.tag} · One person, one ticket.
+        ${EVENT.tag} · <strong>${EVENT.couple}</strong>.
       </div>
     </div>
   </body>
@@ -49,7 +49,7 @@ export function registrationConfirmationEmail(params: {
     subject: `Your DELOUS '26 registration is confirmed — ${params.attendeeCode}`,
     html: shell(
       `Ayọ̀ àti ìbùkún, ${params.name}!`,
-      `<p>Thank you for registering for the wedding celebration of <strong>${EVENT.couple}</strong>.</p>
+      `<p>Thank you for choosing to celebrate with us. We genuinely appreciate your presence and support</p>
        <p>Your attendee ID is <strong>${params.attendeeCode}</strong>.</p>
        <p>Your personal digital invitation and QR admission ticket are ready:</p>
        ${button(params.invitationUrl, "View My Invitation")}

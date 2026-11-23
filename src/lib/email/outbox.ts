@@ -54,7 +54,7 @@ export async function attemptDelivery(outboxId: number): Promise<boolean> {
     sgMail.setApiKey(apiKey);
     const [response] = await sgMail.send({
       to: row.toEmail,
-      from: process.env.SENDGRID_FROM ?? "DELOUS '26 <invites@delous26.com>",
+      from: process.env.SENDGRID_FROM ?? "DELOUS '26 <invites@delous26.com.ng>",
       subject: row.subject,
       html: row.html,
     });
