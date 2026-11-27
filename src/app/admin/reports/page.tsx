@@ -5,7 +5,14 @@ import { eq } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth/permissions";
 import { dashboardStats } from "@/services/analytics.service";
 import { ATTENDANCE_LABELS } from "@/lib/constants";
-import { PageHeader, StatCard, btnSecondary } from "@/components/admin/ui";
+import { PageHeader, StatCard, Card, btnSecondary } from "@/components/admin/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Download01Icon,
+  Shield01Icon,
+  File01Icon,
+  PrinterIcon,
+} from "@hugeicons/core-free-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -27,96 +34,174 @@ export default async function ReportsPage() {
     .limit(30);
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        description="Key rates, downloadable records and the audit trail of sensitive actions."
+        title="Reports & Audit Intelligence"
+        description="Operational conversion metrics, downloadable CSV registers, and an immutable log of administrative actions."
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Registration Rate"
+          label="Preload Conversion Rate"
           value={stats.registrationRate !== null ? `${stats.registrationRate}%` : "n/a"}
-          hint={`${stats.preloadedRegistered} of ${stats.preloaded} preloaded guests registered`}
+          hint={`${stats.preloadedRegistered} of ${stats.preloaded} preloaded registered`}
           accent="gold"
         />
         <StatCard
-          label="Check-in Rate"
+          label="Entrance Check-in Rate"
           value={`${stats.checkInRate}%`}
-          hint={`${stats.checkedIn} of ${stats.registered} eligible guests`}
+          hint={`${stats.checkedIn} of ${stats.registered} eligible admitted`}
           accent="emerald"
         />
         <StatCard
           label="Public Registrations"
           value={stats.publicRegistrations}
-          hint="reported separately from preloaded conversion"
+          hint="Self-registered via public portal"
           accent="burgundy"
         />
         <StatCard
-          label="Confirmed"
+          label="Confirmed Admissions"
           value={stats.confirmed}
-          hint={`${stats.revoked} revoked`}
+          hint={`${stats.revoked} passes revoked`}
           accent="slate"
         />
       </div>
 
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">Downloadable reports</h2>
-        <div className="flex flex-wrap gap-2">
-          <a href="/api/admin/guests/export" className={btnSecondary}>
-            All guests (CSV)
+      {/* Downloadable Registers Card */}
+      <Card
+        title="Downloadable Event Registers (CSV)"
+        description="Export filtered guest rosters for venue coordinators, caterers, and emergency physical checklists."
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <a
+            href="/api/admin/guests/export"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-burgundy/40 hover:bg-zinc-50/70"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-burgundy/10 text-burgundy">
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-900">Master Guest Register</p>
+              <p className="text-[11px] text-zinc-500">All registered & preloaded records</p>
+            </div>
           </a>
-          <a href="/api/admin/guests/export?checkin=yes" className={btnSecondary}>
-            Checked-in guests (CSV)
+
+          <a
+            href="/api/admin/guests/export?checkin=yes"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-emerald-500/40 hover:bg-emerald-50/20"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100/70 text-emerald-800">
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-900">Admitted Guests</p>
+              <p className="text-[11px] text-zinc-500">Guests verified at the entrance</p>
+            </div>
           </a>
-          <a href="/api/admin/guests/export?checkin=no" className={btnSecondary}>
-            Outstanding check-ins (CSV)
+
+          <a
+            href="/api/admin/guests/export?checkin=no"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-amber-500/40 hover:bg-amber-50/20"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100/70 text-amber-800">
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-900">Outstanding Check-ins</p>
+              <p className="text-[11px] text-zinc-500">Guests registered but not yet arrived</p>
+            </div>
           </a>
-          <a href="/api/admin/guests/export?status=preloaded" className={btnSecondary}>
-            Unregistered preloaded guests (CSV)
+
+          <a
+            href="/api/admin/guests/export?status=preloaded"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-900">Unregistered Preloaded</p>
+              <p className="text-[11px] text-zinc-500">VIPs yet to complete their RSVP pass</p>
+            </div>
           </a>
-          <a href="/api/admin/guests/export?attendance=definitely" className={btnSecondary}>
-            {ATTENDANCE_LABELS.definitely} (CSV)
+
+          <a
+            href="/api/admin/guests/export?attendance=definitely"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+              <HugeiconsIcon icon={Download01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-900">Confirmed Attendees</p>
+              <p className="text-[11px] text-zinc-500">{ATTENDANCE_LABELS.definitely} responses</p>
+            </div>
           </a>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          Tip: print the “All guests” export as the access-controlled emergency
-          list for the wedding day.
-        </p>
-      </div>
 
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">
-          Recent administrative activity
-        </h2>
+        <div className="mt-4 flex items-center gap-2 rounded-xl bg-zinc-50 p-3 text-xs text-zinc-500">
+          <HugeiconsIcon icon={PrinterIcon} size={16} className="text-zinc-400 shrink-0" />
+          <span>
+            Operational guidance: Print the <strong>Master Guest Register</strong> CSV on the morning of the wedding as the official physical fallback for the access team.
+          </span>
+        </div>
+      </Card>
+
+      {/* Audit Trail Card */}
+      <Card
+        title="Administrative Activity Log"
+        description="Immutable chronological record of sensitive operations, staff actions, and setting modifications."
+      >
         {recentAudit.length === 0 ? (
-          <p className="text-sm text-slate-400">No audited actions yet</p>
+          <p className="text-xs text-zinc-400 py-6 text-center">
+            No audited actions logged in the system yet.
+          </p>
         ) : (
-          <ul className="divide-y divide-slate-100 text-sm">
-            {recentAudit.map((a) => (
-              <li key={a.id} className="flex items-center justify-between gap-3 py-2.5">
-                <span>
-                  <span className="font-medium text-slate-800">{a.userName ?? "System"}</span>{" "}
-                  <span className="text-slate-600">{a.action}</span>
-                  {a.entityId && (
-                    <span className="text-slate-400">
-                      {" "}
-                      ({a.entityType} #{a.entityId})
-                    </span>
-                  )}
-                </span>
-                <span className="shrink-0 text-xs text-slate-400">
-                  {a.createdAt.toLocaleString("en-GB", {
-                    timeZone: "Africa/Lagos",
-                    dateStyle: "short",
-                    timeStyle: "short",
-                  })}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-zinc-100 bg-zinc-50/60 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                <tr>
+                  <th className="px-4 py-3">Actor / Staff Member</th>
+                  <th className="px-4 py-3">Action Description</th>
+                  <th className="px-4 py-3">Entity Type</th>
+                  <th className="px-4 py-3">Entity ID</th>
+                  <th className="px-4 py-3 text-right">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {recentAudit.map((a) => (
+                  <tr key={a.id} className="hover:bg-zinc-50/50">
+                    <td className="px-4 py-3 font-semibold text-zinc-900">
+                      {a.userName ?? (
+                        <span className="text-zinc-400 font-normal">System Action</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-zinc-700">
+                      {a.action}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 capitalize">
+                      {a.entityType ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-zinc-400">
+                      {a.entityId ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right text-zinc-500">
+                      {a.createdAt.toLocaleString("en-GB", {
+                        timeZone: "Africa/Lagos",
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </>
+      </Card>
+    </div>
   );
 }

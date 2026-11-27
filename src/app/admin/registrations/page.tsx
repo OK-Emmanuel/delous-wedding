@@ -13,9 +13,12 @@ import {
   EmptyState,
   PageHeader,
   Pagination,
+  StatCard,
   btnPrimary,
   inputCls,
 } from "@/components/admin/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FilterIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +40,7 @@ export default async function RegistrationsPage({
       )
     : undefined;
 
-  const [rows, [{ count }]] = await Promise.all([
+  const [rows, [{ count }], stats] = await Promise.all([
     db
       .select({
         id: registrations.id,
@@ -60,100 +63,196 @@ export default async function RegistrationsPage({
       .select({ count: sql<number>`count(*)::int` })
       .from(registrations)
       .where(where),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        definitely: sql<number>`count(*) filter (where ${registrations.attendanceResponse} = 'definitely')::int`,
+        likely: sql<number>`count(*) filter (where ${registrations.attendanceResponse} = 'likely')::int`,
+        declined: sql<number>`count(*) filter (where ${registrations.attendanceResponse} = 'declined')::int`,
+      })
+      .from(registrations),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const counts = stats[0] ?? { total: 0, definitely: 0, likely: 0, declined: 0 };
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        title="Registrations"
-        description={`${count} registration${count === 1 ? "" : "s"} submitted`}
+        title="Registration Records"
+        description={`${count.toLocaleString()} registration form submission${count === 1 ? "" : "s"} logged in database.`}
       />
 
-      <form method="GET" className="mb-4 flex gap-3">
-        <select
-          name="attendance"
-          defaultValue={params.attendance ?? ""}
-          className={`${inputCls} max-w-xs`}
-        >
-          <option value="">All attendance responses</option>
-          {ATTENDANCE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <button className={btnPrimary}>Filter</button>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Submitted" value={counts.total} accent="burgundy" />
+        <StatCard label="Definitely Attending" value={counts.definitely} accent="emerald" />
+        <StatCard label="Likely Attending" value={counts.likely} accent="gold" />
+        <StatCard label="Declined" value={counts.declined} accent="slate" />
+      </div>
+
+      {/* Filter Toolbar */}
+      <form
+        method="GET"
+        className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs"
+      >
+        <div className="flex-1 min-w-[220px]">
+          <select
+            name="attendance"
+            defaultValue={params.attendance ?? ""}
+            className={inputCls}
+          >
+            <option value="">All attendance responses</option>
+            {ATTENDANCE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" className={btnPrimary}>
+          <HugeiconsIcon icon={FilterIcon} size={14} />
+          <span>Filter Records</span>
+        </button>
+        {params.attendance && (
+          <Link
+            href="/admin/registrations"
+            className="rounded-lg px-3 py-2 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition"
+          >
+            Clear Filter
+          </Link>
+        )}
       </form>
 
       {rows.length === 0 ? (
-        <EmptyState title="No registrations yet" />
+        <EmptyState
+          title="No registration submissions found"
+          description="Submissions from the public registration portal will show here automatically."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Guest</th>
-                <th className="px-4 py-3">Relationship</th>
-                <th className="px-4 py-3">Invited by</th>
-                <th className="px-4 py-3">Attendance</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Submitted</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/guests/${r.guestId}`}
-                      className="font-medium text-burgundy hover:underline"
-                    >
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-100 bg-zinc-50/75 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <tr>
+                    <th className="px-5 py-3.5">Guest & Attendee Code</th>
+                    <th className="px-4 py-3.5">Relationship</th>
+                    <th className="px-4 py-3.5">Invited By</th>
+                    <th className="px-4 py-3.5">RSVP Response</th>
+                    <th className="px-4 py-3.5">Guest Status</th>
+                    <th className="px-5 py-3.5 text-right">Submitted</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {rows.map((r) => (
+                    <tr key={r.id} className="group hover:bg-zinc-50/60 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <Link
+                          href={`/admin/guests/${r.guestId}`}
+                          className="font-semibold text-zinc-900 group-hover:text-burgundy transition"
+                        >
+                          {r.fullName}
+                        </Link>
+                        <p className="font-mono text-[11px] text-zinc-400 mt-0.5">
+                          {r.attendeeCode ?? "—"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-700">
+                        {r.relationship ? RELATIONSHIP_LABELS[r.relationship] : "—"}
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-600 font-medium">
+                        {r.invitedBy ?? "—"}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {r.attendanceResponse ? (
+                          <Badge
+                            value={r.attendanceResponse}
+                            label={ATTENDANCE_LABELS[r.attendanceResponse]}
+                          />
+                        ) : (
+                          <span className="text-zinc-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge value={r.guestStatus} />
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-normal text-zinc-500">
+                        {r.createdAt.toLocaleString("en-GB", {
+                          timeZone: "Africa/Lagos",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {rows.map((r) => (
+              <Link
+                key={r.id}
+                href={`/admin/guests/${r.guestId}`}
+                className="block rounded-xl border border-zinc-200/80 bg-white p-4 shadow-xs hover:border-zinc-300 transition"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-sm text-zinc-900">
                       {r.fullName}
-                    </Link>
-                    <p className="text-xs text-slate-400">{r.attendeeCode}</p>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {r.relationship ? RELATIONSHIP_LABELS[r.relationship] : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{r.invitedBy ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    {r.attendanceResponse ? (
-                      <Badge
-                        value={r.attendanceResponse}
-                        label={ATTENDANCE_LABELS[r.attendanceResponse]}
-                      />
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge value={r.guestStatus} />
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {r.createdAt.toLocaleString("en-GB", {
-                      timeZone: "Africa/Lagos",
-                      dateStyle: "medium",
-                      timeStyle: "short",
+                    </h3>
+                    <p className="font-mono text-xs text-zinc-400 mt-0.5">
+                      {r.attendeeCode ?? "No code"}
+                    </p>
+                  </div>
+                  <Badge value={r.guestStatus} />
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  {r.attendanceResponse && (
+                    <Badge
+                      value={r.attendanceResponse}
+                      label={ATTENDANCE_LABELS[r.attendanceResponse]}
+                    />
+                  )}
+                  {r.relationship && (
+                    <span className="rounded bg-zinc-100 px-2 py-0.5 text-zinc-700 font-medium">
+                      {RELATIONSHIP_LABELS[r.relationship]}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between border-t border-zinc-100 pt-2 text-[11px] text-zinc-400">
+                  <span>Invited by: {r.invitedBy ?? "—"}</span>
+                  <span>
+                    {r.createdAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
                     })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            makeHref={(p) =>
+              `/admin/registrations?${new URLSearchParams({
+                ...(params.attendance ? { attendance: params.attendance } : {}),
+                page: String(p),
+              })}`
+            }
+          />
+        </>
       )}
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        makeHref={(p) =>
-          `/admin/registrations?${new URLSearchParams({
-            ...(params.attendance ? { attendance: params.attendance } : {}),
-            page: String(p),
-          })}`
-        }
-      />
-    </>
+    </div>
   );
 }

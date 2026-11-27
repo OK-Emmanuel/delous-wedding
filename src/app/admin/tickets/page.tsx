@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { desc, eq, sql } from "drizzle-orm";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import {
+  CheckmarkCircle01Icon,
+  Ticket01Icon,
+  Shield01Icon,
+  QrCodeIcon,
+} from "@hugeicons/core-free-icons";
 import { db } from "@/db";
 import { checkIns, guests, tickets } from "@/db/schema";
 import { requirePermission } from "@/lib/auth/permissions";
@@ -11,6 +16,7 @@ import {
   PageHeader,
   Pagination,
   StatCard,
+  Card,
 } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
@@ -57,81 +63,147 @@ export default async function TicketsPage({
   const totalPages = Math.max(1, Math.ceil(stats.total / PAGE_SIZE));
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        title="Digital Tickets"
-        description="QR tokens are stored hashed — tickets can only be re-issued, never read back."
+        title="Digital QR Passes"
+        description="Encrypted digital credentials for wedding entrance admission."
       />
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+
+      {/* Security Info Card */}
+      <div className="flex items-start gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs text-xs text-zinc-600">
+        <HugeiconsIcon icon={Shield01Icon} size={18} className="text-zinc-400 shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold text-zinc-900">Cryptographically Hashed Access Tokens</p>
+          <p className="mt-0.5 text-zinc-500">
+            QR credentials use one-way HMAC hashing in the database. Passes cannot be reverse-engineered or read back in plaintext; they can only be verified or re-issued.
+          </p>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Issued" value={stats.total} accent="burgundy" />
-        <StatCard label="Active" value={stats.active} accent="emerald" />
+        <StatCard label="Active Passes" value={stats.active} accent="emerald" />
         <StatCard label="Revoked / Rotated" value={stats.revoked} accent="slate" />
-        <StatCard label="Used at Entrance" value={stats.used} accent="gold" />
+        <StatCard label="Admitted at Gate" value={stats.used} accent="gold" />
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="No tickets issued yet" />
+        <EmptyState
+          title="No digital passes issued yet"
+          description="Passes are automatically generated when guests register or are manually added."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Guest</th>
-                <th className="px-4 py-3">Ticket status</th>
-                <th className="px-4 py-3">Issued</th>
-                <th className="px-4 py-3">Admission</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/guests/${t.guestId}`}
-                      className="font-medium text-burgundy hover:underline"
-                    >
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-100 bg-zinc-50/75 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <tr>
+                    <th className="px-5 py-3.5">Guest & Code</th>
+                    <th className="px-4 py-3.5">Pass Status</th>
+                    <th className="px-4 py-3.5">Issued At</th>
+                    <th className="px-5 py-3.5 text-right">Checkpoint Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {rows.map((t) => (
+                    <tr key={t.id} className="group hover:bg-zinc-50/60 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <Link
+                          href={`/admin/guests/${t.guestId}`}
+                          className="font-semibold text-zinc-900 group-hover:text-burgundy transition"
+                        >
+                          {t.fullName}
+                        </Link>
+                        <p className="font-mono text-[11px] text-zinc-400 mt-0.5">
+                          {t.attendeeCode ?? "—"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge value={t.status} />
+                      </td>
+                      <td className="px-4 py-3.5 font-normal text-zinc-500">
+                        {t.issuedAt.toLocaleString("en-GB", {
+                          timeZone: "Africa/Lagos",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        {t.checkedInAt ? (
+                          <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                            <span>
+                              Admitted at{" "}
+                              {t.checkedInAt.toLocaleTimeString("en-GB", {
+                                timeZone: "Africa/Lagos",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400 font-medium">Unused</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {rows.map((t) => (
+              <Link
+                key={t.id}
+                href={`/admin/guests/${t.guestId}`}
+                className="block rounded-xl border border-zinc-200/80 bg-white p-4 shadow-xs hover:border-zinc-300 transition"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-sm text-zinc-900">
                       {t.fullName}
-                    </Link>
-                    <p className="text-xs text-slate-400">{t.attendeeCode}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge value={t.status} />
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {t.issuedAt.toLocaleString("en-GB", {
-                      timeZone: "Africa/Lagos",
-                      dateStyle: "medium",
-                      timeStyle: "short",
+                    </h3>
+                    <p className="font-mono text-xs text-zinc-400 mt-0.5">
+                      {t.attendeeCode ?? "No code"}
+                    </p>
+                  </div>
+                  <Badge value={t.status} />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2 text-xs text-zinc-500">
+                  <span>
+                    Issued:{" "}
+                    {t.issuedAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
                     })}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
+                  </span>
+                  <span>
                     {t.checkedInAt ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
-                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
-                        <span>
-                          Checked in{" "}
-                          {t.checkedInAt.toLocaleTimeString("en-GB", {
-                            timeZone: "Africa/Lagos",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </span>
+                      <span className="text-emerald-700 font-semibold">Admitted</span>
                     ) : (
-                      <span className="text-slate-400">Unused</span>
+                      "Unused"
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            makeHref={(p) => `/admin/tickets?page=${p}`}
+          />
+        </>
       )}
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        makeHref={(p) => `/admin/tickets?page=${p}`}
-      />
-    </>
+    </div>
   );
 }

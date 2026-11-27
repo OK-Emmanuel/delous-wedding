@@ -1,0 +1,29 @@
+ Great — use this as your standard setup.
+
+  %APPDATA%\Code\User\settings.json
+
+   {
+     "terminal.integrated.env.windows": {
+       "GLOBAL_AGENT_SKILLS": "C:\\Users\\PC\\GlobalAgentSkills"
+     }
+   }
+
+  In any repo, run once:
+
+   if (!(Test-Path ".agents")) { New-Item -ItemType Junction -Path ".agents" -Target 
+  "$env:GLOBAL_AGENT_SKILLS\.agents" | Out-Null }
+   if (!(Test-Path ".claude")) { New-Item -ItemType Junction -Path ".claude" -Target 
+  "$env:GLOBAL_AGENT_SKILLS\.claude" | Out-Null }
+   if (!(Test-Path ".codex"))  { New-Item -ItemType Junction -Path ".codex"  -Target "$env:GLOBAL_AGENT_SKILLS\.codex"
+    | Out-Null }
+
+  Antigravity config (antigravity.config.json in repo root):
+
+   {
+     "skillRoots": [
+       "C:\\Users\\PC\\GlobalAgentSkills\\.agents\\skills\\herk-edit-kit",
+       "C:\\Users\\PC\\GlobalAgentSkills\\.agents\\skills\\openmontage"
+     ]
+   }
+
+  Restart VS Code after this.

@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "next lint",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -42,6 +43,8 @@
     "@types/react-dom": "^19",
     "dotenv": "^17.0.0",
     "drizzle-kit": "^0.31.4",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.2.0",
     "tailwindcss": "^4.1.11",
     "tsx": "^4.20.3",
     "typescript": "^5"

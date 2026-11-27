@@ -9,10 +9,22 @@ import {
 } from "@/app/admin/guests/actions";
 import {
   PageHeader,
+  Card,
+  Badge,
   btnPrimary,
   btnSecondary,
   inputCls,
 } from "@/components/admin/ui";
+import { useToast } from "@/components/admin/Toast";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  FileImportIcon,
+  CheckmarkCircle01Icon,
+  Alert02Icon,
+  ArrowLeft01Icon,
+  Delete02Icon,
+  Upload04Icon,
+} from "@hugeicons/core-free-icons";
 
 type Row = {
   fullName: string;
@@ -61,7 +73,7 @@ function normalizeRows(data: Record<string, string>[]): {
 
 function validateRow(row: Row): string | null {
   if (!row.fullName || row.fullName.length < 2) return "Full name is required";
-  if (row.email && !/^\S+@\S+\.\S+$/.test(row.email)) return "Invalid email";
+  if (row.email && !/^\S+@\S+\.\S+$/.test(row.email)) return "Invalid email address";
   return null;
 }
 
@@ -71,19 +83,20 @@ export default function ImportClient({ groupNames }: { groupNames: string[] }) {
   const [parseError, setParseError] = useState<string | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [pending, startTransition] = useTransition();
+  const { success, error } = useToast();
 
   const analysis = useMemo(() => {
     if (!rows) return null;
     const seen = new Map<string, number>();
     return rows.map((row, i) => {
-      const error = validateRow(row);
+      const err = validateRow(row);
       const key = (row.email || row.phone || row.fullName).toLowerCase();
       const duplicateOf = seen.has(key) ? seen.get(key)! : null;
       if (!seen.has(key)) seen.set(key, i);
       const unknownGroup =
         row.group !== "" &&
         !groupNames.some((g) => g.toLowerCase() === row.group.toLowerCase());
-      return { error, duplicateOf, unknownGroup };
+      return { error: err, duplicateOf, unknownGroup };
     });
   }, [rows, groupNames]);
 
@@ -104,15 +117,20 @@ export default function ImportClient({ groupNames }: { groupNames: string[] }) {
           result.data,
         );
         if (!matchedColumns.includes("fullName")) {
-          setParseError(
-            "Could not find a name column. Expected headers like: Full Name, Email, Phone, Group, Inviter, Notes.",
-          );
+          const errMsg =
+            "Could not identify a name column. Expected headers like: Full Name, Email, Phone, Group, Inviter, Notes.";
+          setParseError(errMsg);
+          error(errMsg);
           setRows(null);
           return;
         }
         setRows(normalized);
+        success(`Parsed ${normalized.length} rows from ${file.name}`);
       },
-      error: (err) => setParseError(err.message),
+      error: (err) => {
+        setParseError(err.message);
+        error(err.message);
+      },
     });
   }
 
@@ -132,173 +150,218 @@ export default function ImportClient({ groupNames }: { groupNames: string[] }) {
       .filter((_, i) => !analysis[i].error && analysis[i].duplicateOf === null)
       .map((r) => ({ ...r }));
     startTransition(async () => {
-      const result = await importGuestsAction(payload);
-      setSummary(result);
-      if (result.ok) setRows(null);
+      try {
+        const result = await importGuestsAction(payload);
+        setSummary(result);
+        if (result.ok) {
+          success(result.message);
+          setRows(null);
+        } else {
+          error(result.message);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Import failed";
+        error(msg);
+      }
     });
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
+        <Link
+          href="/admin/guests"
+          className="inline-flex items-center gap-1 font-medium text-zinc-600 hover:text-burgundy transition"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
+          <span>Back to guest directory</span>
+        </Link>
+      </div>
+
       <PageHeader
         title="Import Guest CSV"
-        description="Preload approved guests. Columns: Full Name (required), Email, Phone, Group, Inviter, Notes."
-        action={
-          <Link href="/admin/guests" className="text-sm text-slate-500 hover:text-burgundy">
-            ← Back to guests
-          </Link>
-        }
+        description="Preload approved guests in bulk. Supported column names: Full Name, Email, Phone, Group, Inviter, Notes."
       />
 
       {summary && (
         <div
-          className={`mb-5 rounded-xl border p-5 ${
+          className={`rounded-2xl border p-5 ${
             summary.ok
-              ? "border-emerald-200 bg-emerald-50"
-              : "border-red-200 bg-red-50"
+              ? "border-emerald-200 bg-emerald-50/70 text-emerald-950"
+              : "border-rose-200 bg-rose-50/70 text-rose-950"
           }`}
         >
-          <p className="font-medium text-slate-800">{summary.message}</p>
-          <p className="mt-1 text-sm text-slate-600">
-            {summary.imported} imported · {summary.skippedDuplicates} skipped as
-            existing guests · {summary.errors.length} errors
-          </p>
-          {summary.errors.length > 0 && (
-            <ul className="mt-2 list-inside list-disc text-xs text-red-700">
-              {summary.errors.map((e, i) => (
-                <li key={i}>
-                  Row {e.row}: {e.message}
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="flex items-start gap-3">
+            <HugeiconsIcon
+              icon={summary.ok ? CheckmarkCircle01Icon : Alert02Icon}
+              size={20}
+              className={summary.ok ? "text-emerald-700" : "text-rose-700"}
+            />
+            <div className="flex-1">
+              <p className="font-semibold text-sm">{summary.message}</p>
+              <p className="mt-1 text-xs opacity-90">
+                {summary.imported} imported · {summary.skippedDuplicates} skipped as
+                existing guests · {summary.errors.length} failed
+              </p>
+              {summary.errors.length > 0 && (
+                <ul className="mt-3 list-inside list-disc text-xs space-y-1">
+                  {summary.errors.map((e, i) => (
+                    <li key={i}>
+                      Row {e.row}: {e.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
       {!rows && (
-        <label className="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 bg-white p-14 text-center transition hover:border-burgundy">
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
-          />
-          <p className="text-lg font-medium text-slate-700">
-            Click to choose a CSV file
-          </p>
-          <p className="mt-1 text-sm text-slate-500">
-            The header row is detected automatically; common column names are
-            recognised.
-          </p>
-        </label>
+        <Card>
+          <label className="flex flex-col items-center justify-center cursor-pointer rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center transition hover:border-burgundy/50 hover:bg-zinc-50">
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+              }}
+            />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-burgundy/10 text-burgundy mb-3">
+              <HugeiconsIcon icon={Upload04Icon} size={24} />
+            </div>
+            <p className="text-sm font-semibold text-zinc-900">
+              Click to select or drag a CSV file
+            </p>
+            <p className="mt-1 text-xs text-zinc-500 max-w-sm">
+              Columns are auto-detected. Full name is required; email, phone, and invitation group are optional.
+            </p>
+          </label>
+        </Card>
       )}
 
       {parseError && (
-        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{parseError}</p>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-medium text-rose-800 flex items-center gap-2">
+          <HugeiconsIcon icon={Alert02Icon} size={16} />
+          <span>{parseError}</span>
+        </div>
       )}
 
       {rows && analysis && (
-        <>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-600">
-              <span className="font-medium text-slate-800">{fileName}</span> —{" "}
-              {rows.length} rows · <span className="text-emerald-700">{validCount} ready</span>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs">
+            <div className="text-xs text-zinc-600">
+              <span className="font-semibold text-zinc-900">{fileName}</span> —{" "}
+              {rows.length} rows detected ·{" "}
+              <span className="font-semibold text-emerald-700">{validCount} valid</span>
               {rows.length - validCount > 0 && (
-                <span className="text-amber-700">
+                <span className="font-semibold text-amber-700">
                   {" "}
-                  · {rows.length - validCount} will be skipped
+                  · {rows.length - validCount} with warnings/duplicates
                 </span>
               )}
-            </p>
-            <div className="flex gap-2">
-              <button className={btnSecondary} onClick={() => setRows(null)}>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={btnSecondary}
+                onClick={() => setRows(null)}
+              >
                 Choose Another File
               </button>
               <button
+                type="button"
                 className={btnPrimary}
                 disabled={pending || validCount === 0}
                 onClick={runImport}
               >
-                {pending ? "Importing…" : `Import ${validCount} Guests`}
+                <HugeiconsIcon icon={FileImportIcon} size={15} />
+                <span>
+                  {pending ? "Importing records..." : `Import ${validCount} Guests`}
+                </span>
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table className="w-full min-w-[900px] text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50 uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-3 py-2.5">#</th>
-                  <th className="px-3 py-2.5">Full Name</th>
-                  <th className="px-3 py-2.5">Email</th>
-                  <th className="px-3 py-2.5">Phone</th>
-                  <th className="px-3 py-2.5">Group</th>
-                  <th className="px-3 py-2.5">Inviter</th>
-                  <th className="px-3 py-2.5">Status</th>
-                  <th className="px-3 py-2.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((row, i) => {
-                  const a = analysis[i];
-                  return (
-                    <tr
-                      key={i}
-                      className={
-                        a.error
-                          ? "bg-red-50/60"
-                          : a.duplicateOf !== null
-                            ? "bg-amber-50/60"
-                            : undefined
-                      }
-                    >
-                      <td className="px-3 py-2 text-slate-400">{i + 1}</td>
-                      {(["fullName", "email", "phone", "group", "inviter"] as const).map(
-                        (field) => (
-                          <td key={field} className="px-2 py-1.5">
-                            <input
-                              value={row[field]}
-                              onChange={(e) => updateCell(i, field, e.target.value)}
-                              className={`${inputCls} !px-2 !py-1.5 !text-xs`}
-                            />
-                          </td>
-                        ),
-                      )}
-                      <td className="px-3 py-2">
-                        {a.error ? (
-                          <span className="text-red-700">{a.error}</span>
-                        ) : a.duplicateOf !== null ? (
-                          <span className="text-amber-700">
-                            Duplicate of row {a.duplicateOf + 1}
-                          </span>
-                        ) : a.unknownGroup ? (
-                          <span className="text-amber-700">
-                            New group name (will be unassigned)
-                          </span>
-                        ) : (
-                          <span className="text-emerald-700">Ready</span>
+          <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left text-xs">
+                <thead className="border-b border-zinc-100 bg-zinc-50/75 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <tr>
+                    <th className="px-3.5 py-3">#</th>
+                    <th className="px-3 py-3">Full Name *</th>
+                    <th className="px-3 py-3">Email</th>
+                    <th className="px-3 py-3">Phone</th>
+                    <th className="px-3 py-3">Group</th>
+                    <th className="px-3 py-3">Inviter</th>
+                    <th className="px-3.5 py-3">Status</th>
+                    <th className="px-3 py-3 text-right" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {rows.map((row, i) => {
+                    const a = analysis[i];
+                    return (
+                      <tr
+                        key={i}
+                        className={
+                          a.error
+                            ? "bg-rose-50/40"
+                            : a.duplicateOf !== null
+                              ? "bg-amber-50/40"
+                              : "hover:bg-zinc-50/50"
+                        }
+                      >
+                        <td className="px-3.5 py-2 font-mono text-zinc-400">
+                          {i + 1}
+                        </td>
+                        {(["fullName", "email", "phone", "group", "inviter"] as const).map(
+                          (field) => (
+                            <td key={field} className="px-2 py-1.5">
+                              <input
+                                value={row[field]}
+                                onChange={(e) => updateCell(i, field, e.target.value)}
+                                className={`${inputCls} !py-1 !text-xs !rounded-md`}
+                              />
+                            </td>
+                          ),
                         )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <button
-                          onClick={() => removeRow(i)}
-                          className="text-slate-400 hover:text-red-600"
-                          aria-label="Remove row"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <td className="px-3.5 py-2">
+                          {a.error ? (
+                            <span className="font-medium text-rose-700">{a.error}</span>
+                          ) : a.duplicateOf !== null ? (
+                            <span className="font-medium text-amber-700">
+                              Duplicate of row {a.duplicateOf + 1}
+                            </span>
+                          ) : a.unknownGroup ? (
+                            <span className="text-amber-700">
+                              New group (unassigned)
+                            </span>
+                          ) : (
+                            <span className="font-medium text-emerald-700">Ready</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => removeRow(i)}
+                            className="rounded p-1 text-zinc-400 hover:text-rose-600 transition"
+                            aria-label="Remove row"
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

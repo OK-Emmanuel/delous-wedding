@@ -16,6 +16,13 @@ import {
   deleteGalleryItemAction,
   updateGalleryItemAction,
 } from "./actions";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Image01Icon,
+  Add01Icon,
+  Delete02Icon,
+  FloppyDiskIcon,
+} from "@hugeicons/core-free-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -26,103 +33,171 @@ export default async function GalleryAdminPage() {
   });
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        title="Gallery"
-        description="Pre-wedding photographs. Draft items are hidden from the public site; lower sort order appears first."
+        title="Pre-wedding Gallery"
+        description="Curated photographs shown on the website. Draft images remain hidden from guests; lower sort numbers display first."
       />
 
-      <details className="mb-5 rounded-xl border border-slate-200 bg-white shadow-sm" open={items.length === 0}>
-        <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-burgundy">
-          + Add a photo
+      {/* Add New Photo Collapsible Card */}
+      <details
+        className="group rounded-2xl border border-zinc-200/80 bg-white shadow-xs overflow-hidden"
+        open={items.length === 0}
+      >
+        <summary className="flex cursor-pointer items-center justify-between px-6 py-4.5 text-xs sm:text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50/70 select-none">
+          <span className="inline-flex items-center gap-2 text-burgundy">
+            <HugeiconsIcon icon={Add01Icon} size={16} />
+            <span>Add a New Photograph</span>
+          </span>
+          <span className="text-xs text-zinc-400 group-open:rotate-180 transition-transform">
+            ▼
+          </span>
         </summary>
         <form
           action={createGalleryItemAction}
-          className="grid gap-4 border-t border-slate-100 p-5 md:grid-cols-2"
+          className="border-t border-zinc-100 bg-zinc-50/40 p-6 space-y-4"
         >
-          <div className="md:col-span-2">
-            <label className={labelCls}>Image URL * (e.g. a Cloudinary delivery URL)</label>
-            <input name="imageUrl" type="url" className={inputCls} required placeholder="https://res.cloudinary.com/…" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Image URL * (Cloudinary or public delivery URL)</label>
+              <input
+                name="imageUrl"
+                type="url"
+                className={inputCls}
+                required
+                placeholder="https://res.cloudinary.com/..."
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Photo Caption</label>
+              <input
+                name="caption"
+                placeholder="e.g. Royal Traditional Attire"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Alt Text (Accessibility)</label>
+              <input
+                name="altText"
+                placeholder="Description of image for screen readers"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Sort Order</label>
+              <input
+                name="sortOrder"
+                type="number"
+                defaultValue={items.length}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Status</label>
+              <select name="status" defaultValue="published" className={inputCls}>
+                <option value="published">Published (Visible)</option>
+                <option value="draft">Draft (Hidden)</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className={labelCls}>Caption</label>
-            <input name="caption" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Alt text (accessibility)</label>
-            <input name="altText" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Sort order</label>
-            <input name="sortOrder" type="number" defaultValue={items.length} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Status</label>
-            <select name="status" defaultValue="published" className={inputCls}>
-              <option value="draft">Draft (hidden)</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-          <div>
-            <button className={btnPrimary}>Add Photo</button>
+          <div className="flex justify-end pt-2">
+            <button type="submit" className={btnPrimary}>
+              Upload Photo Entry
+            </button>
           </div>
         </form>
       </details>
 
+      {/* Gallery Photo Grid */}
       {items.length === 0 ? (
         <EmptyState
-          title="No photos yet"
-          description="Add pre-wedding photographs by URL — upload originals to Cloudinary and paste the delivery link here."
+          title="No gallery photos added yet"
+          description="Add pre-wedding photos by URL above to populate the celebration gallery."
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {
             const update = updateGalleryItemAction.bind(null, item.id);
             const remove = deleteGalleryItemAction.bind(null, item.id);
+
             return (
-              <div key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.imageUrl}
-                  alt={item.altText ?? ""}
-                  loading="lazy"
-                  className="h-44 w-full object-cover"
-                />
-                <form action={update} className="space-y-2.5 p-4">
-                  <div className="flex items-center justify-between">
-                    <Badge value={item.status} />
-                    <span className="text-xs text-slate-400">#{item.id}</span>
-                  </div>
-                  <input name="imageUrl" defaultValue={item.imageUrl} className={`${inputCls} !text-xs`} required />
-                  <input
-                    name="caption"
-                    defaultValue={item.caption ?? ""}
-                    placeholder="Caption"
-                    className={`${inputCls} !text-xs`}
+              <div
+                key={item.id}
+                className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs transition hover:border-zinc-300"
+              >
+                <div className="relative h-48 w-full bg-zinc-100 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.imageUrl}
+                    alt={item.altText ?? ""}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                   />
-                  <input
-                    name="altText"
-                    defaultValue={item.altText ?? ""}
-                    placeholder="Alt text"
-                    className={`${inputCls} !text-xs`}
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      name="sortOrder"
-                      type="number"
-                      defaultValue={item.sortOrder}
-                      className={`${inputCls} !w-20 !text-xs`}
-                      title="Sort order"
+                  <div className="absolute top-3 left-3">
+                    <Badge
+                      value={item.status}
+                      label={item.status === "draft" ? "Draft" : "Published"}
                     />
-                    <select name="status" defaultValue={item.status} className={`${inputCls} !text-xs`}>
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                    </select>
                   </div>
-                  <div className="flex justify-between pt-1">
-                    <button className={`${btnPrimary} !px-3 !py-1.5 !text-xs`}>Save</button>
-                    <button formAction={remove} className={`${btnDanger} !px-3 !py-1.5 !text-xs`}>
+                  <div className="absolute top-3 right-3 rounded-md bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[10px] font-mono text-white">
+                    #{item.sortOrder}
+                  </div>
+                </div>
+
+                <form action={update} className="p-5 space-y-3 bg-white">
+                  <div>
+                    <label className={labelCls}>Delivery URL</label>
+                    <input
+                      name="imageUrl"
+                      defaultValue={item.imageUrl}
+                      className={`${inputCls} !text-xs !py-1.5`}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Caption</label>
+                    <input
+                      name="caption"
+                      defaultValue={item.caption ?? ""}
+                      placeholder="Optional caption"
+                      className={`${inputCls} !text-xs !py-1.5`}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={labelCls}>Sort Order</label>
+                      <input
+                        name="sortOrder"
+                        type="number"
+                        defaultValue={item.sortOrder}
+                        className={`${inputCls} !text-xs !py-1.5`}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Status</label>
+                      <select
+                        name="status"
+                        defaultValue={item.status}
+                        className={`${inputCls} !text-xs !py-1.5`}
+                      >
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
+                    <button
+                      type="submit"
+                      formAction={remove}
+                      className="text-xs font-medium text-rose-600 hover:text-rose-800 transition p-1"
+                    >
                       Delete
+                    </button>
+                    <button type="submit" className={btnPrimary}>
+                      <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+                      <span>Save</span>
                     </button>
                   </div>
                 </form>
@@ -131,6 +206,6 @@ export default async function GalleryAdminPage() {
           })}
         </div>
       )}
-    </>
+    </div>
   );
 }

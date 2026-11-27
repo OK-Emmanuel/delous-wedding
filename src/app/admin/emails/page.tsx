@@ -12,6 +12,12 @@ import {
   StatCard,
   btnPrimary,
 } from "@/components/admin/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Mail01Icon,
+  RefreshIcon,
+  Alert02Icon,
+} from "@hugeicons/core-free-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -65,81 +71,153 @@ export default async function EmailsPage({
   }
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        title="Email Campaigns"
-        description="Durable outbox — registrations never fail because of email delivery."
+        title="Email Campaigns & Outbox"
+        description="Durable asynchronous queue — guest registrations and invitations are never blocked by email dispatch latency."
         action={
           <form action={retryAll}>
-            <button className={btnPrimary} disabled={stats.pending + stats.failed === 0}>
-              Retry Pending & Failed ({stats.pending + stats.failed})
+            <button
+              type="submit"
+              className={btnPrimary}
+              disabled={stats.pending + stats.failed === 0}
+            >
+              <HugeiconsIcon icon={RefreshIcon} size={15} />
+              <span>Retry Queue ({stats.pending + stats.failed})</span>
             </button>
           </form>
         }
       />
 
       {!sendgridConfigured && (
-        <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <strong>SendGrid is not configured.</strong> Emails are queued but not
-          delivered. Set <code>SENDGRID_API_KEY</code> and <code>SENDGRID_FROM</code>{" "}
-          in the environment, then use “Retry Pending &amp; Failed”.
-        </p>
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/70 p-4 text-xs text-amber-900 shadow-xs">
+          <HugeiconsIcon icon={Alert02Icon} size={18} className="text-amber-700 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">SendGrid API Key Not Configured</p>
+            <p className="mt-0.5 text-amber-800">
+              Outbound emails are recorded in the durable queue and will dispatch as soon as <code>SENDGRID_API_KEY</code> is provided in the environment.
+            </p>
+          </div>
+        </div>
       )}
 
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Queued" value={stats.total} accent="burgundy" />
-        <StatCard label="Pending" value={stats.pending} accent="gold" />
-        <StatCard label="Sent" value={stats.sent} accent="emerald" />
+        <StatCard label="Pending Delivery" value={stats.pending} accent="gold" />
+        <StatCard label="Delivered / Sent" value={stats.sent} accent="emerald" />
         <StatCard label="Failed / Bounced" value={stats.failed} accent="slate" />
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="No emails queued yet" />
+        <EmptyState
+          title="No outbound emails queued yet"
+          description="Emails dispatched from invitations or registration confirmations will be logged here."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Recipient</th>
-                <th className="px-4 py-3">Template</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Attempts</th>
-                <th className="px-4 py-3">Queued</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-800">{e.guestName ?? "—"}</p>
-                    <p className="text-xs text-slate-500">{e.toEmail}</p>
-                  </td>
-                  <td className="px-4 py-3 text-xs capitalize text-slate-600">
-                    {e.template.replace(/_/g, " ")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge value={e.status} />
-                    {e.lastError && (
-                      <p className="mt-1 max-w-xs truncate text-xs text-red-600" title={e.lastError}>
-                        {e.lastError}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{e.attempts}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {e.createdAt.toLocaleString("en-GB", {
-                      timeZone: "Africa/Lagos",
-                      dateStyle: "medium",
-                      timeStyle: "short",
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-100 bg-zinc-50/75 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <tr>
+                    <th className="px-5 py-3.5">Guest & Email</th>
+                    <th className="px-4 py-3.5">Template</th>
+                    <th className="px-4 py-3.5">Status</th>
+                    <th className="px-4 py-3.5">Attempts</th>
+                    <th className="px-5 py-3.5 text-right">Queued</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {rows.map((e) => (
+                    <tr key={e.id} className="hover:bg-zinc-50/60 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <p className="font-semibold text-zinc-900">
+                          {e.guestName ?? "—"}
+                        </p>
+                        <p className="font-mono text-[11px] text-zinc-400 mt-0.5 truncate max-w-[220px]">
+                          {e.toEmail}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-700 capitalize font-medium">
+                        {e.template.replace(/_/g, " ")}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge value={e.status} />
+                        {e.lastError && (
+                          <p
+                            className="mt-1 max-w-xs truncate text-[11px] text-rose-600"
+                            title={e.lastError}
+                          >
+                            {e.lastError}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-zinc-600">
+                        {e.attempts}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-normal text-zinc-500">
+                        {e.createdAt.toLocaleString("en-GB", {
+                          timeZone: "Africa/Lagos",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {rows.map((e) => (
+              <div
+                key={e.id}
+                className="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-sm text-zinc-900">
+                      {e.guestName ?? e.toEmail}
+                    </h3>
+                    <p className="text-xs text-zinc-500 capitalize mt-0.5">
+                      {e.template.replace(/_/g, " ")}
+                    </p>
+                  </div>
+                  <Badge value={e.status} />
+                </div>
+
+                {e.lastError && (
+                  <p className="mt-2 text-xs text-rose-600 break-words">
+                    {e.lastError}
+                  </p>
+                )}
+
+                <div className="mt-2.5 flex items-center justify-between border-t border-zinc-100 pt-2 text-[11px] text-zinc-400">
+                  <span>Attempts: {e.attempts}</span>
+                  <span>
+                    {e.createdAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
                     })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            makeHref={(p) => `/admin/emails?page=${p}`}
+          />
+        </>
       )}
-      <Pagination page={page} totalPages={totalPages} makeHref={(p) => `/admin/emails?page=${p}`} />
-    </>
+    </div>
   );
 }

@@ -11,7 +11,13 @@ import {
   Alert02Icon,
   CancelCircleIcon,
   Cancel01Icon,
+  UserAdd01Icon,
+  ArrowTurnBackwardIcon,
+  QrCodeIcon,
 } from "@hugeicons/core-free-icons";
+import { Modal, ConfirmModal } from "@/components/admin/Modal";
+import { useToast } from "@/components/admin/Toast";
+import { inputCls, labelCls, btnPrimary, btnSecondary, Badge } from "@/components/admin/ui";
 
 type Stats = { total: number; registered: number; checkedIn: number };
 type ScanGuest = {
@@ -51,14 +57,113 @@ type Recent = {
   checkedInAt: string;
 };
 
-type Toast = { id: number; kind: "success" | "error" | "info"; text: string };
-
 const lagosTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", {
     timeZone: "Africa/Lagos",
     hour: "2-digit",
     minute: "2-digit",
   });
+
+function ScanResultCard({
+  result,
+  onNext,
+}: {
+  result: ScanResult;
+  onNext: () => void;
+}) {
+  const config =
+    result.status === "admitted"
+      ? {
+          bg: "bg-emerald-50/80 border-emerald-200/90",
+          icon: CheckmarkCircle01Icon,
+          iconColor: "text-emerald-600 bg-emerald-100/60",
+          title: "Admitted — Welcome to DELOUS '26!",
+        }
+      : result.status === "already_checked_in"
+        ? {
+            bg: "bg-amber-50/80 border-amber-200/90",
+            icon: Alert02Icon,
+            iconColor: "text-amber-600 bg-amber-100/60",
+            title: "Already Admitted / Checked In",
+          }
+        : result.status === "revoked"
+          ? {
+              bg: "bg-rose-50/80 border-rose-200/90",
+              icon: CancelCircleIcon,
+              iconColor: "text-rose-600 bg-rose-100/60",
+              title: "Ticket Revoked — Do Not Admit",
+            }
+          : result.status === "invalid"
+            ? {
+                bg: "bg-rose-50/80 border-rose-200/90",
+                icon: Cancel01Icon,
+                iconColor: "text-rose-600 bg-rose-100/60",
+                title: "Invalid Ticket QR Code",
+              }
+            : {
+                bg: "bg-rose-50/80 border-rose-200/90",
+                icon: Alert02Icon,
+                iconColor: "text-rose-600 bg-rose-100/60",
+                title: "Scan Processing Error",
+              };
+
+  const guest = "guest" in result ? result.guest : null;
+
+  return (
+    <div
+      className={`rounded-2xl border p-6 text-center shadow-xs transition-all ${config.bg}`}
+    >
+      <div className="flex justify-center">
+        <div
+          className={`flex h-16 w-16 items-center justify-center rounded-2xl ${config.iconColor}`}
+        >
+          <HugeiconsIcon icon={config.icon} size={36} />
+        </div>
+      </div>
+      <h3 className="mt-4 text-lg font-bold text-zinc-900 tracking-tight">
+        {config.title}
+      </h3>
+      {guest && (
+        <div className="mt-3.5 space-y-1">
+          <p className="text-2xl font-bold text-zinc-900">{guest.fullName}</p>
+          <p className="font-mono text-xs text-zinc-500 font-medium">
+            {guest.attendeeCode ?? "No code"}
+          </p>
+          {guest.groupName && (
+            <div className="pt-1.5">
+              <span className="inline-block rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white shadow-xs">
+                {guest.groupName}
+              </span>
+            </div>
+          )}
+          {"checkedInAt" in result && (
+            <p className="mt-2 text-xs text-zinc-600 font-medium">
+              Verified at: {lagosTime(result.checkedInAt)} (Lagos Time)
+            </p>
+          )}
+          {result.status === "admitted" && (
+            <p className="mt-3 text-xs font-semibold text-emerald-800">
+              Please verify identity and provide wedding access wristband.
+            </p>
+          )}
+        </div>
+      )}
+      {result.status === "error" && (
+        <p className="mt-2 text-xs font-medium text-rose-700">{result.message}</p>
+      )}
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={onNext}
+          className="inline-flex items-center gap-2 rounded-xl bg-burgundy px-7 py-3 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-wine transition focus:outline-none focus:ring-2 focus:ring-burgundy/20"
+        >
+          <HugeiconsIcon icon={Camera01Icon} size={16} />
+          <span>Scan Next Guest</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function CheckInClient({
   groups,
@@ -70,16 +175,9 @@ export default function CheckInClient({
   const [tab, setTab] = useState<"scan" | "search" | "recent">("scan");
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const toastId = useRef(0);
+  const { toast } = useToast();
 
-  const toast = useCallback((kind: Toast["kind"], text: string) => {
-    const id = ++toastId.current;
-    setToasts((t) => [...t, { id, kind, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4500);
-  }, []);
-
-  // --- Multi-device sync: poll stats + recent every 10 seconds -----------
+  // Multi-device sync
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/check-in/stats", { cache: "no-store" });
@@ -98,7 +196,7 @@ export default function CheckInClient({
     return () => clearInterval(id);
   }, [refresh]);
 
-  // --- Scanner ------------------------------------------------------------
+  // Scanner
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanLock = useRef(false);
   const [scannerActive, setScannerActive] = useState(false);
@@ -141,12 +239,12 @@ export default function CheckInClient({
       } catch {
         setScanResult({
           status: "error",
-          message: "Network failure — the guest was NOT admitted. Try again.",
+          message: "Network failure — guest not admitted. Please retry.",
         });
         await stopScanner();
       }
     },
-    [refresh, stopScanner],
+    [refresh, stopScanner]
   );
 
   const startScanner = useCallback(async () => {
@@ -161,21 +259,21 @@ export default function CheckInClient({
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
         (decoded) => void handleDecoded(decoded),
-        () => {},
+        () => {}
       );
       setScannerActive(true);
     } catch (err) {
       setScannerError(
         err instanceof Error && /permission/i.test(err.message)
           ? "Camera permission denied. Allow camera access in your browser settings, or use manual search."
-          : "Could not start the camera. Use manual search instead.",
+          : "Could not initialize camera scanner. Use manual search instead."
       );
     }
   }, [handleDecoded]);
 
   useEffect(() => () => void stopScanner(), [stopScanner]);
 
-  // --- Manual search (lifted from tosin-wedding frontdoor) ----------------
+  // Search
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRow[]>([]);
   const [searching, setSearching] = useState(false);
@@ -192,7 +290,7 @@ export default function CheckInClient({
       try {
         const res = await fetch(
           `/api/admin/check-in/search?q=${encodeURIComponent(query.trim())}`,
-          { cache: "no-store" },
+          { cache: "no-store" }
         );
         const json = await res.json();
         if (seq === searchSeq.current) setResults(json.results ?? []);
@@ -206,10 +304,9 @@ export default function CheckInClient({
   }, [query]);
 
   async function manualCheckIn(row: SearchRow) {
-    // Optimistic update with rollback (tosin-wedding pattern)
     const nowIso = new Date().toISOString();
     setResults((rs) =>
-      rs.map((r) => (r.id === row.id ? { ...r, checkedInAt: nowIso } : r)),
+      rs.map((r) => (r.id === row.id ? { ...r, checkedInAt: nowIso } : r))
     );
     setStats((s) => (s ? { ...s, checkedIn: s.checkedIn + 1 } : s));
     try {
@@ -220,42 +317,45 @@ export default function CheckInClient({
       });
       const json = await res.json();
       if (json.status === "admitted") {
-        toast("success", `${row.fullName} checked in successfully`);
+        toast({ type: "success", message: `${row.fullName} admitted successfully` });
       } else {
-        // rollback optimistic state
         setResults((rs) =>
           rs.map((r) =>
-            r.id === row.id ? { ...r, checkedInAt: row.checkedInAt } : r,
-          ),
+            r.id === row.id ? { ...r, checkedInAt: row.checkedInAt } : r
+          )
         );
         setStats((s) => (s ? { ...s, checkedIn: Math.max(0, s.checkedIn - 1) } : s));
         if (json.status === "already_checked_in") {
           setResults((rs) =>
             rs.map((r) =>
-              r.id === row.id ? { ...r, checkedInAt: json.checkedInAt } : r,
-            ),
+              r.id === row.id ? { ...r, checkedInAt: json.checkedInAt } : r
+            )
           );
-          toast("info", `${row.fullName} is already checked in.`);
+          toast({ type: "info", message: `${row.fullName} is already checked in.` });
         } else if (json.status === "revoked") {
-          toast("error", `${row.fullName}'s ticket is revoked — do not admit.`);
+          toast({ type: "error", message: `${row.fullName}'s ticket is revoked — do not admit.` });
         } else {
-          toast("error", json.error ?? "Check-in failed");
+          toast({ type: "error", message: json.error ?? "Check-in failed" });
         }
       }
       void refresh();
     } catch {
       setResults((rs) =>
         rs.map((r) =>
-          r.id === row.id ? { ...r, checkedInAt: row.checkedInAt } : r,
-        ),
+          r.id === row.id ? { ...r, checkedInAt: row.checkedInAt } : r
+        )
       );
       setStats((s) => (s ? { ...s, checkedIn: Math.max(0, s.checkedIn - 1) } : s));
-      toast("error", "Network error — check-in not recorded.");
+      toast({ type: "error", message: "Network error — check-in not recorded." });
     }
   }
 
-  async function undo(guestId: number, name: string) {
-    if (!window.confirm(`Reverse check-in for ${name}?`)) return;
+  // Undo confirmation modal
+  const [undoTarget, setUndoTarget] = useState<{ id: number; name: string } | null>(null);
+
+  async function confirmUndo() {
+    if (!undoTarget) return;
+    const { id: guestId, name } = undoTarget;
     try {
       const res = await fetch("/api/admin/check-in/undo", {
         method: "POST",
@@ -263,20 +363,22 @@ export default function CheckInClient({
         body: JSON.stringify({ guestId }),
       });
       if (res.ok) {
-        toast("success", `${name} returned to awaiting.`);
+        toast({ type: "success", message: `${name} returned to awaiting check-in.` });
         setRecent((r) => r.filter((x) => x.guestId !== guestId));
         setStats((s) => (s ? { ...s, checkedIn: Math.max(0, s.checkedIn - 1) } : s));
       } else {
         const json = await res.json();
-        toast("error", json.error ?? "Undo failed");
+        toast({ type: "error", message: json.error ?? "Undo failed" });
       }
       void refresh();
     } catch {
-      toast("error", "Network error — undo not recorded.");
+      toast({ type: "error", message: "Network error — undo not recorded." });
+    } finally {
+      setUndoTarget(null);
     }
   }
 
-  // --- On-spot registration modal -----------------------------------------
+  // On-spot registration modal
   const [modalOpen, setModalOpen] = useState(false);
   const [osName, setOsName] = useState("");
   const [osPhone, setOsPhone] = useState("");
@@ -300,10 +402,10 @@ export default function CheckInClient({
       });
       const json = await res.json();
       if (res.ok) {
-        toast(
-          "success",
-          `${osName} registered${osAuto ? " and checked in" : ""} (${json.attendeeCode})`,
-        );
+        toast({
+          type: "success",
+          message: `${osName} registered${osAuto ? " and checked in" : ""} (${json.attendeeCode})`,
+        });
         setModalOpen(false);
         setOsName("");
         setOsPhone("");
@@ -311,22 +413,23 @@ export default function CheckInClient({
         setOsAuto(true);
         void refresh();
       } else {
-        toast("error", json.error ?? "Registration failed");
+        toast({ type: "error", message: json.error ?? "Registration failed" });
       }
     } catch {
-      toast("error", "Network error — not registered.");
+      toast({ type: "error", message: "Network error — could not register." });
     } finally {
       setOsBusy(false);
     }
   }
 
-  const tabBtn = (key: typeof tab, label: ReactNode) => (
+  const renderTabButton = (key: typeof tab, label: ReactNode) => (
     <button
+      type="button"
       onClick={() => setTab(key)}
-      className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+      className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
         tab === key
-          ? "bg-burgundy text-white"
-          : "bg-white text-slate-600 hover:bg-slate-100"
+          ? "bg-white text-zinc-900 shadow-xs"
+          : "text-zinc-600 hover:text-zinc-900"
       }`}
     >
       {label}
@@ -334,151 +437,216 @@ export default function CheckInClient({
   );
 
   return (
-    <div className="mx-auto max-w-3xl">
-      {/* Live counter header */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-wine p-5 text-champagne">
-        <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-gold">
-            Unified Entrance Check-in
-          </p>
-          <p className="mt-1 text-sm text-champagne/70">Officer: {officerName}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-display text-4xl font-semibold">
-            {stats ? `${stats.checkedIn} / ${stats.registered}` : "— / —"}
-          </p>
-          <p className="text-xs text-champagne/70">guests admitted</p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Live Entrance Header */}
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-wine p-6 text-champagne shadow-sm relative">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-burgundy/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-gold border border-gold/30">
+              Live Checkpoint
+            </div>
+            <h2 className="mt-2 text-lg font-bold text-white tracking-tight">
+              DELOUS &apos;26 Entrance Check-in
+            </h2>
+            <p className="mt-0.5 text-xs text-zinc-300">
+              On duty: <span className="font-semibold text-white">{officerName}</span>
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/15 bg-black/25 px-5 py-3 text-right">
+            <p className="text-3xl font-extrabold tracking-tight text-white font-mono">
+              {stats ? `${stats.checkedIn} / ${stats.registered}` : "— / —"}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-gold">
+              Guests Admitted
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Tabs + on-spot */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {tabBtn("scan", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Camera01Icon} size={16} /><span>Scan QR</span></span>)}
-        {tabBtn("search", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Search01Icon} size={16} /><span>Manual Search</span></span>)}
-        {tabBtn("recent", <span className="inline-flex items-center gap-1.5"><HugeiconsIcon icon={Clock01Icon} size={16} /><span>Recent ({recent.length})</span></span>)}
+      {/* Tabs and Walk-in Action */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex rounded-xl bg-zinc-200/60 p-1 border border-zinc-200/80">
+          {renderTabButton(
+            "scan",
+            <>
+              <HugeiconsIcon icon={Camera01Icon} size={15} />
+              <span>Camera Scan</span>
+            </>
+          )}
+          {renderTabButton(
+            "search",
+            <>
+              <HugeiconsIcon icon={Search01Icon} size={15} />
+              <span>Manual Search</span>
+            </>
+          )}
+          {renderTabButton(
+            "recent",
+            <>
+              <HugeiconsIcon icon={Clock01Icon} size={15} />
+              <span>Recent Activity ({recent.length})</span>
+            </>
+          )}
+        </div>
+
         <button
+          type="button"
           onClick={() => setModalOpen(true)}
-          className="ml-auto rounded-lg border border-gold bg-gold/10 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-gold/30"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-gold/50 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900 shadow-xs hover:bg-amber-100 transition"
         >
-          + Register on Spot
+          <HugeiconsIcon icon={UserAdd01Icon} size={15} />
+          <span>Walk-in Guest</span>
         </button>
       </div>
 
-      {/* ---- Scan tab ---- */}
+      {/* Scan Tab */}
       {tab === "scan" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs">
           {scanResult ? (
             <ScanResultCard
               result={scanResult}
               onNext={() => void startScanner()}
             />
           ) : (
-            <>
+            <div className="space-y-4">
               <div
                 id="qr-reader"
-                className="mx-auto w-full max-w-sm overflow-hidden rounded-xl bg-slate-900 [&_video]:w-full"
+                className="mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-inner [&_video]:w-full"
               />
               {!scannerActive && (
-                <div className="py-8 text-center">
+                <div className="py-8 text-center space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-burgundy/10 text-burgundy mx-auto">
+                    <HugeiconsIcon icon={QrCodeIcon} size={24} />
+                  </div>
                   {scannerError ? (
-                    <p className="mx-auto mb-4 max-w-sm rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                    <div className="mx-auto max-w-sm rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
                       {scannerError}
-                    </p>
+                    </div>
                   ) : (
-                    <p className="mb-4 text-sm text-slate-500">
-                      Start the camera and ask the guest to present their QR
-                      invitation.
+                    <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+                      Click below to activate the camera and present guest QR invitations.
                     </p>
                   )}
                   <button
+                    type="button"
                     onClick={() => void startScanner()}
-                    className="rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-white transition hover:bg-wine"
+                    className={btnPrimary}
                   >
-                    Start Camera Scanner
+                    <HugeiconsIcon icon={Camera01Icon} size={15} />
+                    <span>Launch Camera Scanner</span>
                   </button>
                 </div>
               )}
               {scannerActive && (
-                <p className="mt-3 text-center text-xs text-slate-500">
-                  Point the camera at the guest&rsquo;s QR code…
-                </p>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-xs font-medium text-zinc-500">
+                    Camera active — center guest QR pass inside the frame…
+                  </p>
+                </div>
               )}
-            </>
+            </div>
           )}
         </div>
       )}
 
-      {/* ---- Search tab ---- */}
+      {/* Search Tab */}
       {tab === "search" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <input
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a name, attendee ID, phone or email…"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-base focus:border-burgundy focus:outline-none focus:ring-2 focus:ring-burgundy/20"
-          />
-          <div className="mt-4 space-y-2">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs space-y-4">
+          <div className="relative">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={18}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"
+            />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by guest name, attendee ID, phone, or email…"
+              className={`${inputCls} !pl-10 !py-2.5`}
+            />
+          </div>
+
+          <div className="space-y-2.5">
             {query.trim().length < 2 ? (
-              <p className="py-10 text-center text-sm text-slate-400">
-                Start typing to find a guest — the top 10 matches appear
-                instantly.
+              <p className="py-12 text-center text-xs text-zinc-400">
+                Type at least 2 characters to search the guest roster.
               </p>
             ) : searching && results.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">Searching…</p>
-            ) : results.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">
-                No attendee matches &ldquo;{query}&rdquo;. Check the spelling or
-                register them on the spot.
+              <p className="py-12 text-center text-xs text-zinc-400">
+                Searching guest records…
               </p>
+            ) : results.length === 0 ? (
+              <div className="py-12 text-center space-y-2">
+                <p className="text-xs font-medium text-zinc-500">
+                  No guest matches &ldquo;{query}&rdquo;.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(true)}
+                  className="text-xs font-semibold text-burgundy hover:underline"
+                >
+                  Register as approved walk-in guest →
+                </button>
+              </div>
             ) : (
               results.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-4"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-zinc-200/80 p-4 transition hover:border-zinc-300"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-slate-900">
-                      {r.fullName}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {r.attendeeCode}
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-zinc-900 truncate">
+                        {r.fullName}
+                      </p>
                       {r.groupName && (
-                        <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-700">
                           {r.groupName}
                         </span>
                       )}
+                    </div>
+                    <p className="font-mono text-xs text-zinc-400 mt-0.5">
+                      {r.attendeeCode ?? "No code"}
+                      {r.phone ? ` · ${r.phone}` : ""}
                     </p>
                     {r.status === "revoked" ? (
-                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600">
+                      <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-600">
                         <HugeiconsIcon icon={CancelCircleIcon} size={14} />
                         <span>Revoked — do not admit</span>
                       </p>
                     ) : r.checkedInAt ? (
-                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-emerald-700">
                         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
                         <span>Checked in at {lagosTime(r.checkedInAt)}</span>
                       </p>
                     ) : (
-                      <p className="mt-1 text-xs text-slate-400">Awaiting check-in</p>
+                      <p className="mt-1 text-[11px] text-zinc-400 font-medium">
+                        Awaiting entrance check-in
+                      </p>
                     )}
                   </div>
-                  {r.status !== "revoked" && !r.checkedInAt && (
-                    <button
-                      onClick={() => void manualCheckIn(r)}
-                      className="shrink-0 rounded-full bg-burgundy px-5 py-2.5 text-sm font-medium text-white transition hover:bg-wine"
-                    >
-                      Check In Now
-                    </button>
-                  )}
-                  {r.checkedInAt && (
-                    <button
-                      disabled
-                      className="shrink-0 rounded-full bg-slate-200 px-5 py-2.5 text-sm font-medium text-slate-500"
-                    >
-                      Checked In
-                    </button>
-                  )}
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    {r.status !== "revoked" && !r.checkedInAt && (
+                      <button
+                        type="button"
+                        onClick={() => void manualCheckIn(r)}
+                        className={btnPrimary}
+                      >
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={15} />
+                        <span>Check In Now</span>
+                      </button>
+                    )}
+                    {r.checkedInAt && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 border border-emerald-200/60">
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                        <span>Admitted</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))
             )}
@@ -486,29 +654,38 @@ export default function CheckInClient({
         </div>
       )}
 
-      {/* ---- Recent tab ---- */}
+      {/* Recent Tab */}
       {tab === "recent" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs">
           {recent.length === 0 ? (
-            <p className="py-10 text-center text-sm text-slate-400">
-              No check-ins yet — they will stream in here live.
+            <p className="py-12 text-center text-xs text-zinc-400">
+              No recent check-ins recorded yet. Admitted guests will stream here live.
             </p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-zinc-100">
               {recent.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 py-3">
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between gap-3 py-3.5 first:pt-0 last:pb-0"
+                >
                   <div>
-                    <p className="font-medium text-slate-900">{r.fullName}</p>
-                    <p className="text-xs text-slate-500">
-                      {lagosTime(r.checkedInAt)} · {r.method === "qr" ? "QR scan" : "manual"}
+                    <p className="font-semibold text-sm text-zinc-900">{r.fullName}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {lagosTime(r.checkedInAt)} ·{" "}
+                      <span className="uppercase font-medium text-zinc-600">
+                        {r.method === "qr" ? "QR Scan" : "Manual"}
+                      </span>
                       {r.officer && ` · by ${r.officer}`}
+                      {r.groupName && ` (${r.groupName})`}
                     </p>
                   </div>
                   <button
-                    onClick={() => void undo(r.guestId, r.fullName)}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+                    type="button"
+                    onClick={() => setUndoTarget({ id: r.guestId, name: r.fullName })}
+                    className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 hover:text-rose-600 transition"
                   >
-                    Undo
+                    <HugeiconsIcon icon={ArrowTurnBackwardIcon} size={13} />
+                    <span>Undo</span>
                   </button>
                 </li>
               ))}
@@ -517,167 +694,94 @@ export default function CheckInClient({
         </div>
       )}
 
-      {/* ---- On-spot modal ---- */}
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
-          onClick={() => setModalOpen(false)}
-        >
-          <form
-            onSubmit={registerOnSpot}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          >
-            <h2 className="text-lg font-semibold text-slate-900">Register on Spot</h2>
-            <p className="mt-1 text-xs text-slate-500">
-              For approved walk-ins and last-minute VIP guests only.
-            </p>
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Full name *
-                </label>
-                <input
-                  value={osName}
-                  onChange={(e) => setOsName(e.target.value)}
-                  required
-                  minLength={2}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-burgundy focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Phone (optional)
-                </label>
-                <input
-                  value={osPhone}
-                  onChange={(e) => setOsPhone(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-burgundy focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Invitation group
-                </label>
-                <select
-                  value={osGroup}
-                  onChange={(e) => setOsGroup(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-burgundy focus:outline-none"
-                >
-                  <option value="">Unassigned</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={osAuto}
-                  onChange={(e) => setOsAuto(e.target.checked)}
-                  className="h-4 w-4 accent-[#541323]"
-                />
-                Check in immediately
-              </label>
-            </div>
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={osBusy}
-                className="flex-1 rounded-lg bg-burgundy py-2.5 text-sm font-medium text-white hover:bg-wine disabled:opacity-60"
-              >
-                {osBusy ? "Saving…" : "Register Guest"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* ---- Toasts ---- */}
-      <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={`pointer-events-auto rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg ${
-              t.kind === "success"
-                ? "bg-emerald-600"
-                : t.kind === "error"
-                  ? "bg-red-600"
-                  : "bg-slate-700"
-            }`}
-          >
-            {t.text}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ScanResultCard({
-  result,
-  onNext,
-}: {
-  result: ScanResult;
-  onNext: () => void;
-}) {
-  const config =
-    result.status === "admitted"
-      ? { bg: "bg-emerald-50 border-emerald-200", icon: CheckmarkCircle01Icon, iconColor: "text-emerald-600", title: "Admitted — welcome!" }
-      : result.status === "already_checked_in"
-        ? { bg: "bg-amber-50 border-amber-200", icon: Alert02Icon, iconColor: "text-amber-600", title: "Already checked in" }
-        : result.status === "revoked"
-          ? { bg: "bg-red-50 border-red-200", icon: CancelCircleIcon, iconColor: "text-red-600", title: "Ticket revoked — do not admit" }
-          : result.status === "invalid"
-            ? { bg: "bg-red-50 border-red-200", icon: Cancel01Icon, iconColor: "text-red-600", title: "Invalid ticket" }
-            : { bg: "bg-red-50 border-red-200", icon: Alert02Icon, iconColor: "text-red-600", title: "Scan error" };
-
-  const guest = "guest" in result ? result.guest : null;
-
-  return (
-    <div className={`rounded-xl border p-6 text-center ${config.bg}`}>
-      <div className={`flex justify-center ${config.iconColor}`}>
-        <HugeiconsIcon icon={config.icon} size={48} />
-      </div>
-      <h3 className="mt-3 text-xl font-semibold text-slate-900">{config.title}</h3>
-      {guest && (
-        <div className="mt-3">
-          <p className="text-2xl font-semibold text-slate-900">{guest.fullName}</p>
-          <p className="text-sm text-slate-500">{guest.attendeeCode}</p>
-          {guest.groupName && (
-            <span className="mt-2 inline-block rounded bg-slate-800 px-2 py-0.5 text-xs font-medium text-white">
-              {guest.groupName}
-            </span>
-          )}
-          {"checkedInAt" in result && (
-            <p className="mt-2 text-xs text-slate-500">
-              Check-in time: {lagosTime(result.checkedInAt)}
-            </p>
-          )}
-          {result.status === "admitted" && (
-            <p className="mt-3 text-sm font-medium text-emerald-700">
-              Verify the guest&rsquo;s name before letting them through.
-            </p>
-          )}
-        </div>
-      )}
-      {result.status === "error" && (
-        <p className="mt-2 text-sm text-red-700">{result.message}</p>
-      )}
-      <button
-        onClick={onNext}
-        className="mt-6 rounded-full bg-burgundy px-8 py-3 text-sm font-medium text-white transition hover:bg-wine"
+      {/* Walk-in Registration Modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Register Approved Walk-in Guest"
+        description="For last-minute VIP guests or approved walk-ins at the checkpoint."
+        maxWidth="md"
       >
-        Scan Next Guest
-      </button>
+        <form onSubmit={registerOnSpot} className="space-y-4">
+          <div>
+            <label className={labelCls}>Full Name *</label>
+            <input
+              value={osName}
+              onChange={(e) => setOsName(e.target.value)}
+              required
+              minLength={2}
+              placeholder="e.g. Chief Adeleke"
+              className={inputCls}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Phone Number (Optional)</label>
+            <input
+              value={osPhone}
+              onChange={(e) => setOsPhone(e.target.value)}
+              placeholder="+234..."
+              className={inputCls}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Invitation Group</label>
+            <select
+              value={osGroup}
+              onChange={(e) => setOsGroup(e.target.value)}
+              className={inputCls}
+            >
+              <option value="">Unassigned</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <label className="flex items-center gap-2.5 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs font-medium text-zinc-800">
+            <input
+              type="checkbox"
+              checked={osAuto}
+              onChange={(e) => setOsAuto(e.target.checked)}
+              className="h-4 w-4 rounded accent-[#541323]"
+            />
+            <span>Check in immediately upon registration</span>
+          </label>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className={btnSecondary}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={osBusy}
+              className={btnPrimary}
+            >
+              {osBusy ? "Registering..." : "Register & Admit"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Reversible check-in confirmation modal */}
+      {undoTarget && (
+        <ConfirmModal
+          open={!!undoTarget}
+          onClose={() => setUndoTarget(null)}
+          onConfirm={() => void confirmUndo()}
+          title="Reverse Admission"
+          message={`Reverse check-in status for ${undoTarget.name}? This will return them to pending check-in status.`}
+          confirmLabel="Reverse Check-in"
+          variant="warning"
+        />
+      )}
     </div>
   );
 }

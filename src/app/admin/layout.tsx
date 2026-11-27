@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth/permissions";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
 import { ROLE_LABELS } from "@/lib/constants";
 import AdminSidebar, { type NavItem } from "@/components/admin/AdminSidebar";
+import { ToastProvider } from "@/components/admin/Toast";
 import { logoutAction } from "@/app/(auth)/admin/login/actions";
 
 const NAV: Array<NavItem & { permission: Permission }> = [
@@ -30,16 +31,20 @@ export default async function AdminLayout({
   ).map(({ href, label, icon }) => ({ href, label, icon }));
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <AdminSidebar
-        items={items}
-        userName={session.name}
-        roleLabel={ROLE_LABELS[session.role] ?? session.role}
-        logout={logoutAction}
-      />
-      <div className="md:pl-60">
-        <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">{children}</main>
+    <ToastProvider>
+      <div className="min-h-screen bg-zinc-50/70 text-zinc-900 antialiased font-sans">
+        <AdminSidebar
+          items={items}
+          userName={session.name}
+          roleLabel={ROLE_LABELS[session.role] ?? session.role}
+          logout={logoutAction}
+        />
+        <div className="md:pl-64 flex flex-col min-h-screen">
+          <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }
