@@ -87,6 +87,9 @@ export default function Footer({
         <p className="mt-6 text-center text-xs text-champagne/50">
           &copy; 2026 DELOUS &rsquo;26. Celebrating {EVENT.couple}. All rights reserved.
         </p>
+        <p className="mt-6 text-center text-xs text-champagne/50">
+         Developed by <Link href="https://techifice.com?utm_source=delous_wedding"> Techifice </Link>
+        </p>
       </div>
     </footer>
   );

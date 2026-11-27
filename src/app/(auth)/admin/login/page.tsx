@@ -82,7 +82,7 @@ function LoginForm() {
 
 export default function AdminLoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50/80 px-4 py-12 antialiased font-sans">
+    <div className="admin-dashboard flex min-h-screen items-center justify-center bg-zinc-50/80 px-4 py-12 antialiased font-sans">
       <div className="w-full max-w-sm">
         {/* Brand Crest & Header */}
         <div className="mb-6 text-center">

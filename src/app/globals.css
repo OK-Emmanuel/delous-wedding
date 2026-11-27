@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* DELOUS '26 brand tokens */
+  /* DELOUS '26 brand tokens (PRD §3.1) */
   --color-burgundy: #541323;
   --color-wine: #260811;
   --color-gold: #c6a15b;
@@ -10,18 +10,19 @@
   --color-ivory: #faf6ef;
   --color-rich-black: #171313;
 
-  --font-display: "Inter", sans-serif;
-  --font-sans: "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
   color-scheme: light;
-  font-family: "Inter", sans-serif;
 }
 
-html, body {
-  font-family: "Inter", sans-serif !important;
+/* Admin dashboard exclusive professional typography */
+.admin-dashboard,
+.admin-dashboard * {
+  font-family: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Custom Scrollbar - DELOUS '26 Burgundy & Wine palette (Requirement 5) */

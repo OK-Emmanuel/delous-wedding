@@ -32,7 +32,7 @@ export default async function AdminLayout({
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-zinc-50/70 text-zinc-900 antialiased font-sans">
+      <div className="admin-dashboard min-h-screen bg-zinc-50/70 text-zinc-900 antialiased font-sans">
         <AdminSidebar
           items={items}
           userName={session.name}

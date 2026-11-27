@@ -38,7 +38,7 @@ const HERO_SLIDES = [
     caption: "A Lifetime of Friendship Becoming One",
   },
   {
-    image: "/casual/IMG_9657.CR2.jpg",
+    image: "/casual/IMG_9657.jpg.jpeg",
     title: "Our Purest Haven",
     caption: "From Secondary School Classmates to Eternity",
   },
